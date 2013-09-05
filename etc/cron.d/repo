@@ -1,0 +1,31 @@
+#awstat
+*/15 * * * * root /usr/local/awstats/wwwroot/cgi-bin/awstats.pl -update -config=repo.grid.iu.edu >> /usr/local/awstats/log.txt
+
+#update mash (el5)
+1-59/30 * * * * root /usr/local/update_repo.sh osg-development el5 3.0 > /var/log/repo/update_repo.30.el5.development.log 2> /var/log/repo/update_repo.30.el5.development.err
+3-59/30 * * * * root /usr/local/update_repo.sh osg-testing el5 3.0 > /var/log/repo/update_repo.30.el5.testing.log 2> /var/log/repo/update_repo.30.el5.testing.err
+5-59/30 * * * * root /usr/local/update_repo.sh osg-release el5 3.0 > /var/log/repo/update_repo.30.el5.release.log 2> /var/log/repo/update_repo.30.el5.release.err
+7-59/30 * * * * root /usr/local/update_repo.sh osg-contrib el5 3.0 > /var/log/repo/update_repo.30.el5.contrib.log 2> /var/log/repo/update_repo.30.el5.contrib.err
+
+
+#update mash (el6)
+9-59/30 * * * * root /usr/local/update_repo.sh osg-development el6 3.0 > /var/log/repo/update_repo.30.el6.development.log 2> /var/log/repo/update_repo.30.el6.development.err
+11-59/30 * * * * root /usr/local/update_repo.sh osg-testing el6 3.0 > /var/log/repo/update_repo.30.el6.testing.log 2> /var/log/repo/update_repo.30.el6.testing.err
+13-59/30 * * * * root /usr/local/update_repo.sh osg-release el6 3.0 > /var/log/repo/update_repo.30.el6.release.log 2> /var/log/repo/update_repo.30.el6.release.err
+15-59/30 * * * * root /usr/local/update_repo.sh osg-contrib el6 3.0 > /var/log/repo/update_repo.30.el6.contrib.log 2> /var/log/repo/update_repo.30.el6.contrib.err
+
+#mash upcoming el5
+17-59/30 * * * * root /usr/local/update_repo.sh osg-upcoming-development el5 3.0 > /var/log/repo/update_repo.30.el5.upcoming-development.log 2> /var/log/repo/update_repo.30.el5.upcoming-development.err
+19-59/30 * * * * root /usr/local/update_repo.sh osg-upcoming-testing el5 3.0 > /var/log/repo/update_repo.30.el5.upcoming-testing.log 2> /var/log/repo/update_repo.30.el5.upcoming-testing.err
+21-59/30 * * * * root /usr/local/update_repo.sh osg-upcoming-release el5 3.0 > /var/log/repo/update_repo.30.el5.upcoming-release.log 2> /var/log/repo/update_repo.30.el5.upcoming-release.err
+
+#mash upcoming el6
+23-59/30 * * * * root /usr/local/update_repo.sh osg-upcoming-development el6 3.0 > /var/log/repo/update_repo.30.el6.upcoming-development.log 2> /var/log/repo/update_repo.30.el6.upcoming-development.err
+25-59/30 * * * * root /usr/local/update_repo.sh osg-upcoming-testing el6 3.0 > /var/log/repo/update_repo.30.el6.upcoming-testing.log 2> /var/log/repo/update_repo.30.el6.upcoming-testing.err
+27-59/30 * * * * root /usr/local/update_repo.sh osg-upcoming-release el6 3.0 > /var/log/repo/update_repo.30.el6.upcoming-release.log 2> /var/log/repo/update_repo.30.el6.upcoming-release.err
+
+#update mirror
+29-59/30 * * * *  root /usr/local/update_mirror.py > /var/log/repo/update_mirror.log 2> /var/log/repo/update_mirror.err
+
+#service monitor
+*/15 * * * * root /opt/service-monitor/repo/test.sh

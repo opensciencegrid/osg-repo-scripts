@@ -1,0 +1,19 @@
+[3.0.el5.osg-upcoming-testing]
+rpm_path = %(arch)s
+repodata_path = %(arch)s
+source_path = source/SRPMS
+debuginfo = True
+multilib = True
+tag = el5-osg-upcoming-testing
+multilib_method = devel
+inherit = True
+strict_keys = False
+keys = 824b8603
+use_repoview = True
+repoviewurl = http://repo.grid.iu.edu/3.0/el5/osg-upcoming-testing/%(arch)s/
+repoviewtitle = "OSG RHEL5 Upcoming Testing - %(arch)s"
+arches = i386 x86_64
+delta = False
+# Change distro_tags as fedora-release version gets bumped
+distro_tags = cpe:/o:fedoraproject:fedora:15 rawhide
+
