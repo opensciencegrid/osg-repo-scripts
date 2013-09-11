@@ -1,0 +1,19 @@
+[osg-upcoming-el5-release]
+rpm_path = %(arch)s
+repodata_path = %(arch)s
+source_path = source/SRPMS
+debuginfo = True
+multilib = True
+tag = osg-upcoming-el5-release
+multilib_method = devel
+inherit = True
+strict_keys = False
+keys = 824b8603
+use_repoview = True
+repoviewurl = http://repo.grid.iu.edu/osg/upcoming/el5/release/%(arch)s/
+repoviewtitle = "OSG Upcoming RHEL5 Release - %(arch)s"
+arches = i386 x86_64
+delta = False
+# Change distro_tags as fedora-release version gets bumped
+distro_tags = cpe:/o:fedoraproject:fedora:15 rawhide
+latest=false
