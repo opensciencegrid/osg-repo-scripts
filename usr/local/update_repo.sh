@@ -1,45 +1,47 @@
-if [ ! $1 ]; then
-        echo "please specify repo name (osg-contrib, ost-release, etc.)"
-                exit
+#!/bin/bash
+
+usage () {
+  echo "Usage: $(basename "$0") REPO DVER SERIES"
+  echo "Where:"
+  echo "  REPO is: contrib, release, etc."
+  echo "  DVER is: el5, el6, etc."
+  echo "  SERIES is: 3.1, 3.2, etc, or upcoming"
+  exit 1
+}
+
+if [[ $# -ne 3 ]]; then
+  usage
 fi
 
-if [ ! $2 ]; then
-        echo "please specify el name (el5, el6, etc..)"
-        exit
-fi
+REPO=$1
+DVER=$2
+SERIES=$3
+release_path="/usr/local/repo/osg/$SERIES/$DVER/$REPO"
+working_path="/usr/local/repo.working/osg/$SERIES/$DVER/$REPO"
+previous_path="/usr/local/repo.previous/osg/$SERIES/$DVER/$REPO"
+reponame=osg-$SERIES-$DVER-$REPO
 
-if [ ! $3 ]; then
-        echo "please specify version (3.0)"
-        exit
-fi
-
-release_path="/usr/local/repo/$3/$2/$1"
-working_path="/usr/local/repo.working/$3/$2/$1"
-previous_path="/usr/local/repo.previous/$3/$2/$1"
-reponame=$3.$2.$1
-
-mkdir -p $release_path $working_path $previous_path
-mash $reponame -o $working_path -p $release_path
+mkdir -p "$release_path" "$working_path" "$previous_path"
+mash "$reponame" -o "$working_path" -p "$release_path"
 if [ "$?" -ne "0" ]; then
         echo "mash failed - please see error log" >&2
         exit 1
 fi
 
-rm -rf $previous_path
-mv $release_path $previous_path 
-mv $working_path/$reponame $release_path
+rm -rf "$previous_path"
+mv "$release_path" "$previous_path"
+mv "$working_path/$reponame" "$release_path"
 
-if [ "$1" == "osg-release" ]; then
-        echo "createing osg-release-latest symlink"
-        cd /usr/local/repo
-        target=$(find $3/$2/$1/x86_64 -name "osg-release*.rpm" | sort | tail -1)
+if [[ $REPO = release && $SERIES != upcoming ]]; then
+        echo "createing osg-$SERIES-$DVER-release-latest symlink"
+        cd /usr/local/repo/osg/"$SERIES"
+        # use ls version-sort so that 3.2-11 > 3.2-2
+        target=$(ls -v "$DVER/$REPO"/x86_64/osg-release-*.rpm | tail -1)
         echo "target: $target"
-        if [ $target ]; then
-                ln -fs $target osg-$2-release-latest.rpm
+        if [[ $target ]]; then
+                ln -fs "$target" "osg-$SERIES-$DVER-release-latest.rpm"
         else
-                echo "didn't find the osg-release.rpm under $3/$2/$1"
+                echo "didn't find the osg-release rpm under $SERIES/$DVER/$REPO"
         fi
-        cd -
-
 fi
 
