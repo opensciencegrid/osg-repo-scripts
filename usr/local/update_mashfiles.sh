@@ -8,17 +8,7 @@ usage () {
   exit
 }
 
-#tmpd=$(mktemp -d)
-#trap 'rm -rf "$tmpd"'
 cd /usr/local
-
-split_string () {
-  local IFS='-' _val=$1 _
-  shift
-  read "${@/#-*/_}" <<< "$_val"
-}
-
-cd "$tmpd"
 
 # tag patterns to allow
 series='([0-9]+\.[0-9]+|upcoming)'
