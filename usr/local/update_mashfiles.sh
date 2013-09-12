@@ -20,7 +20,7 @@ esac
 done
 
 if [[ $1 ]]; then
-  if [[ -d $1 ]]; then
+  if [[ ! -d $1 ]]; then
     echo "DESTDIR '$DESTDIR' does not exist" >&2
     exit 1
   fi
@@ -34,6 +34,7 @@ dver='el[5-9]'
 repo='(contrib|development|release|testing)'
 tag_regex="osg-$series-$dver-$repo"
 
+# list new-style osg tags from koji
 koji --config=/etc/mash_koji_config list-tags 'osg-*-*-*' \
 | egrep -x "$tag_regex" > osg-tags.new
 
@@ -44,9 +45,9 @@ else
   exit 1
 fi
 
-while IFS='-' read osg series dver repo; do
+for tag in $(< osg-tags); do
   echo "Creating mash file for osg-$series-$dver-$repo"
-  ./new_mashfile.sh "$repo" "$dver" "$series" "$DESTDIR" < /dev/null
+  ./new_mashfile.sh "$tag" "$DESTDIR" < /dev/null
 done < osg-tags
 
 if [[ $REMOVE_OLD ]]; then
