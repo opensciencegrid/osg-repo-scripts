@@ -46,7 +46,7 @@ else
 fi
 
 for tag in $(< osg-tags); do
-  echo "Creating mash file for osg-$series-$dver-$repo"
+  echo "Creating mash file for $tag"
   ./new_mashfile.sh "$tag" "$DESTDIR" < /dev/null
 done < osg-tags
 
