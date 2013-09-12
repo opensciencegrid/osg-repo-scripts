@@ -18,11 +18,14 @@ case $# in
   * ) usage ;;
 esac
 
+upper () { python -c 'import sys; print sys.argv[1].upper()' "$*" ; }
+title () { python -c 'import sys; print sys.argv[1].title()' "$*" ; }
+
 REPO=$1
 DVER=$2
 SERIES=$3
 # repoviewtitle looks something like: OSG 3.1 RHEL5 Contrib
-REPOVIEWTITLE="OSG ${SERIES^} RH${DVER^^} ${REPO^}"
+REPOVIEWTITLE="OSG $(title $SERIES) RH$(upper $DVER) $(title $REPO)"
 
 case $REPO in
   release ) LATEST="latest=false" ;;
