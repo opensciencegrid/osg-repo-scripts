@@ -2,13 +2,31 @@
 set -e
 
 usage () {
-  echo "$(basename "$0") [DESTDIR]"
+  echo "Usage: $(basename "$0") [--remove-old] [DESTDIR]"
   echo "Generates .mash files based on osg tags from koji."
-  echo "Writes files to DESTDIR, or /etc/mash by default."
+  echo "Write to DESTDIR, defaulting to /etc/mash"
+  echo "If --remove-old is specified, delete out-of-date osg .mash files too."
   exit
 }
 
-cd /usr/local
+DESTDIR=/etc/mash
+SCRIPTDIR=$(cd "$(dirname "$0")"; pwd)
+
+while [[ $1 = -* ]]; do
+case $1 in
+  --remove-old ) REMOVE_OLD=Y; shift ;;
+  --help | * ) usage ;;
+esac
+done
+
+if [[ $1 ]]; then
+  if [[ -d $1 ]]; then
+    echo "DESTDIR '$DESTDIR' does not exist" >&2
+    exit 1
+  fi
+fi
+
+cd "$SCRIPTDIR"
 
 # tag patterns to allow
 series='([0-9]+\.[0-9]+|upcoming)'
@@ -28,6 +46,15 @@ fi
 
 while IFS='-' read osg series dver repo; do
   echo "Creating mash file for osg-$series-$dver-$repo"
-  /usr/local/new_mashfile.sh "$repo" "$dver" "$series" < /dev/null
+  ./new_mashfile.sh "$repo" "$dver" "$series" "$DESTDIR" < /dev/null
 done < osg-tags
+
+if [[ $REMOVE_OLD ]]; then
+  cd "$DESTDIR"
+  ls | grep -e '^osg-' -e 'el[56]-osg-' | # list all osg .mash files
+       sed 's/\.mash$//'                | # strip .mash extension
+       fgrep -xvf "$SCRIPTDIR"/osg-tags | # omit valid tags
+       sed 's/$/.mash/'                 | # add back .mash extension
+       xargs -rd '\n' rm -v               # remove obsolete osg .mash files
+fi
 
