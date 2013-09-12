@@ -13,7 +13,7 @@ cd /usr/local
 # tag patterns to allow
 series='([0-9]+\.[0-9]+|upcoming)'
 dver='el[5-9]'
-repo='(build|contrib|development|release|testing)'
+repo='(contrib|development|release|testing)'
 tag_regex="osg-$series-$dver-$repo"
 
 koji --config=/etc/mash_koji_config list-tags 'osg-*-*-*' \
