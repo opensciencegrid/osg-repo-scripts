@@ -1,21 +1,23 @@
 #!/bin/bash
 
+
 usage () {
-  echo "Usage: $(basename "$0") REPO DVER SERIES"
+  echo "Usage: $(basename "$0") TAG"
   echo "Where:"
-  echo "  REPO is: contrib, release, etc."
-  echo "  DVER is: el5, el6, etc."
+  echo "  TAG is osg-SERIES-DVER-REPO"
   echo "  SERIES is: 3.1, 3.2, etc, or upcoming"
+  echo "  DVER is: el5, el6, etc."
+  echo "  REPO is: contrib, development, testing, or release"
+  echo "  DESTDIR defaults to /etc/mash/"
   exit 1
 }
 
-if [[ $# -ne 3 ]]; then
+TAG=$1
+if [[ $# -ne 1 || $TAG != osg-*-*-* ]]; then
   usage
 fi
+IFS='-' read osg SERIES DVER REPO <<< "$TAG"
 
-REPO=$1
-DVER=$2
-SERIES=$3
 release_path="/usr/local/repo/osg/$SERIES/$DVER/$REPO"
 working_path="/usr/local/repo.working/osg/$SERIES/$DVER/$REPO"
 previous_path="/usr/local/repo.previous/osg/$SERIES/$DVER/$REPO"
