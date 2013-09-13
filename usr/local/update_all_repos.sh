@@ -14,7 +14,7 @@ LOGDIR=/var/log/repo
 
 case $1 in
   -L ) LOGDIR=$2 ;;
-  --help | * ) usage ;;
+  --help | -* ) usage ;;
 esac
 
 if [[ ! -e osg-tags ]]; then
@@ -30,6 +30,7 @@ fi
 for tag in $(< osg-tags); do
   echo "Running update_repo.sh for tag $tag ..."
   ./update_repo.sh "$tag" > "$LOGDIR/update_repo.$tag.log" \
-                         2> "$LOGDIR/update_repo.$tag.err"
+                         2> "$LOGDIR/update_repo.$tag.err" \
+  || echo "mash failed for $tag - please see error log" >&2
 done
 
