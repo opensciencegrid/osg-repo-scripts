@@ -52,7 +52,7 @@ else
   echo "Pulling osg tags from koji..."
 
   koji --config=/etc/mash_koji_config list-tags 'osg-*-*-*' \
-  | egrep -x "$tag_regex" > osg-tags.new
+  | egrep -x "$tag_regex" > osg-tags.new || :
 
   if [[ -s osg-tags.new ]]; then
     # don't replace osg-tags if it hasn't changed
