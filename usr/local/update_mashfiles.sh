@@ -77,8 +77,8 @@ cp "$DESTDIR"/*.mash "$DESTDIR/mash.bak/" 2>/dev/null || :
 
 for tag in $(< osg-tags); do
   echo "Creating mash file for $tag"
-  ./new_mashfile.sh "$tag" "$DESTDIR" < /dev/null
-done < osg-tags
+  ./new_mashfile.sh "$tag" "$DESTDIR"
+done
 
 if [[ $REMOVE_OLD ]]; then
   cd "$DESTDIR"
