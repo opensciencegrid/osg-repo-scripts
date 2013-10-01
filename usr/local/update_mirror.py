@@ -3,14 +3,16 @@
 import urllib2
 import time
 import sys
-import commands
+import os
+import shutil
 from socket import gethostname
 
 def log(log):
     print time.strftime("%a %m/%d/%y %H:%M:%S %Z: ", time.localtime()),log
 
 tagfile = open("/usr/local/osg-tags", "r")
-tags = [tag.rstrip("\n") for tag in tagfile]
+tags = [tag.rstrip("\n").split(":")[0] for tag in tagfile]
+tags = sorted(set(tags))
 tagfile.close()
 
 archs = ["i386", "x86_64"]
@@ -68,32 +70,37 @@ def test(hosts,tag,arch):
 
     return list
 
+log("evacuating live dir for osg")
+
+#replace previous mirror
+if os.path.exists("/usr/local/mirror/.osg.prev"):
+    shutil.rmtree("/usr/local/mirror/.osg.prev")
+
+if os.path.exists("/usr/local/mirror/.osg.new"):
+    os.rename("/usr/local/mirror/.osg.new", "/usr/local/mirror/.osg.prev")
+
+#point mirror to previous
+if os.path.lexists("/usr/local/mirror/osg"):
+    os.unlink("/usr/local/mirror/osg")
+
+os.symlink(".osg.prev", "/usr/local/mirror/osg")
+
+#create new mirror
 for tag in tags:
-    log("evacuating live dir for osg")
-
-    #creating new mirror_prev
-    commands.getstatusoutput("rm -rf /usr/local/mirror/.osg.prev")
-    commands.getstatusoutput("cp -a /usr/local/mirror/.osg.new /usr/local/mirror/.osg.prev")
-
-    #pointing mirror to previous
-    commands.getstatusoutput("ln -f -s -T .osg.prev /usr/local/mirror/osg")
-
-    #empty new mirror
-    commands.getstatusoutput("rm -rf /usr/local/mirror/.osg.new/*")
-
     log("checking for "+tag)
     osg,series,dver,repo = tag.split('-')
+    repopath = '/'.join(["/usr/local/mirror/.osg.new",series,dver,repo])
+    os.makedirs(repopath)
     for arch in archs:
         list = test(mirrorhosts,tag,arch)
-        repopath = '/'.join(["/usr/local/mirror/.osg.new",series,dver,repo])
-        commands.getstatusoutput("mkdir -p " + repopath)
         f = open(repopath + "/" + arch, "w")
         for m in list:
             f.write(m+"\n")
-        f.close()       
+        f.close()
 
-    #pointing mirror to mirror_new
-    commands.getstatusoutput("ln -f -s -T .osg.new /usr/local/mirror/osg")
+#point mirror to new
+os.unlink("/usr/local/mirror/osg")
+os.symlink(".osg.new", "/usr/local/mirror/osg")
 
 log("all done")
 

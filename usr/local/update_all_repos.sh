@@ -28,6 +28,7 @@ if [[ ! -d $LOGDIR ]]; then
 fi
 
 for tag in $(< osg-tags); do
+  tag=${tag%%:*}  # strip old-style mapping, if present
   echo "Running update_repo.sh for tag $tag ..."
   ./update_repo.sh "$tag" > "$LOGDIR/update_repo.$tag.log" \
                          2> "$LOGDIR/update_repo.$tag.err" \
