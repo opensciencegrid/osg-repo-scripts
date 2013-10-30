@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ###################################################################################################
 #
 # Service test script
@@ -6,19 +8,17 @@
 
 service=repo
 logalert=/opt/service-monitor/$service/bin/logalert
+logdir=/var/log/repo
 
-#run logalert
-tail -100 /var/log/repo/update_repo.30.el5.development.err | grep "ERR" | $logalert ${service}.30.el5.development.error "[$service] [ERROR] /var/log/update_repo.30.el5.development.err"
-tail -100 /var/log/repo/update_repo.30.el5.testing.err | grep "ERR" | $logalert ${service}.30.el5.testing.error "[$service] [ERROR] /var/log/update_repo.30.el5.testing.err"
-tail -100 /var/log/repo/update_repo.30.el5.release.err | grep "ERR" | $logalert ${service}.30.el5.release.error "[$service] [ERROR] /var/log/update_repo.30.el5.release.err"
-tail -100 /var/log/repo/update_repo.30.el5.contrib.err | grep "ERR" | $logalert ${service}.30.el5.contrib.error "[$service] [ERROR] /var/log/update_repo.30.el5.contrib.err"
+#run logalert for each repo
 
-tail -100 /var/log/repo/update_repo.30.el6.development.err | grep "ERR" | $logalert ${service}.30.el6.development.error "[$service] [ERROR] /var/log/update_repo.30.el6.development.err"
-tail -100 /var/log/repo/update_repo.30.el6.testing.err | grep "ERR" | $logalert ${service}.30.el6.testing.error "[$service] [ERROR] /var/log/update_repo.30.el6.testing.err"
-tail -100 /var/log/repo/update_repo.30.el6.release.err | grep "ERR" | $logalert ${service}.30.el6.release.error "[$service] [ERROR] /var/log/update_repo.30.el6.release.err"
-tail -100 /var/log/repo/update_repo.30.el6.contrib.err | grep "ERR" | $logalert ${service}.30.el6.contrib.error "[$service] [ERROR] /var/log/update_repo.30.el6.contrib.err"
+for repo in $(< /usr/local/osg-tags); do
+  log=$logdir/update_repo.$repo.err
 
-tail -100 /var/log/repo/update_mirror.err | $logalert ${service}.update_mirror.err "[$service] [ERROR] /var/log/repo/update_mirror.err"
+  grep ERR "$log" | tail -100 | $logalert "$service.$repo.error" "[$service] [ERROR] $log"
+done
+
+tail -100 $logdir/update_mirror.err | $logalert ${service}.update_mirror.err "[$service] [ERROR] $logdir/update_mirror.err"
 
 #report status
 time=`date +%s`
