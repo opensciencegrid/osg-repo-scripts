@@ -38,7 +38,7 @@ if [[ $REPO = release && $SERIES != upcoming ]]; then
         echo "createing osg-$SERIES-$DVER-release-latest symlink"
         cd /usr/local/repo/osg/"$SERIES"
         # use ls version-sort so that 3.2-11 > 3.2-2
-        target=$(ls -v "$DVER/$REPO"/x86_64/osg-release-*.rpm | tail -1)
+        target=$(ls -v "$DVER/$REPO"/x86_64/osg-release-[^i][^t][^b]*.rpm | tail -1)
         echo "target: $target"
         if [[ $target ]]; then
                 ln -fs "$target" "osg-$SERIES-$DVER-release-latest.rpm"
