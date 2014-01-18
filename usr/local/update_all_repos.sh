@@ -30,7 +30,7 @@ fi >&2
 [[ -d $LOGDIR  ]] || mkdir -p "$LOGDIR"
 [[ -d $LOCKDIR ]] || mkdir -p "$LOCKDIR"
 
-299> "$LOCKDIR"/all-repos.lk
+exec 299> "$LOCKDIR"/all-repos.lk
 if ! flock -n 299; then
   echo "Can't acquire lock, is $(basename "$0") already running?" >&2
   exit 1

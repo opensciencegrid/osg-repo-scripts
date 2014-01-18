@@ -5,10 +5,26 @@ import time
 import sys
 import os
 import shutil
-from socket import gethostname
+import socket
+import fcntl
+import errno
 
 def log(log):
     print time.strftime("%a %m/%d/%y %H:%M:%S %Z: ", time.localtime()),log
+
+def lock(path):
+    dir = os.path.dirname(path)
+    if dir and not os.path.exists(dir):
+        os.makedirs(dir)
+    lock_fd = os.open(path, os.O_WRONLY | os.O_CREAT)
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except IOError, e:
+        if e.errno == errno.EWOULDBLOCK:
+            log("Script appears to already be running.")
+            sys.exit(1)
+
+lock("/var/lock/repo/update-mirror.lk")
 
 tagfile = open("/usr/local/osg-tags", "r")
 tags = [tag.rstrip("\n").split(":")[0] for tag in tagfile]
@@ -24,17 +40,20 @@ mirrorhosts = [
 ]
 
 threshold = 24 #hours
+timeout = 10 #seconds
+socket.setdefaulttimeout(timeout)
 
 log("Using following parameters")
 log("tags:"+str(tags))
 log("hosts:"+str(mirrorhosts))
 log("archs:"+str(archs))
 log("threshold:"+str(threshold)+" (hours)")
+log("timeout:"+str(timeout)+" (seconds)")
 print
 
 #gethostname() returns actual instance name (like repo2.grid.iu.edu)
 hostname="repo.grid.iu.edu"
-if gethostname() == "repo-itb.grid.iu.edu":
+if socket.gethostname() == "repo-itb.grid.iu.edu":
     hostname="repo-itb.grid.iu.edu"
 
 def mkarchurl(host,tag,arch):
