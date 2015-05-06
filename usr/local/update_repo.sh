@@ -42,6 +42,10 @@ if [[ $REPO = release && $SERIES != upcoming ]]; then
         echo "target: $target"
         if [[ $target ]]; then
                 ln -fs "$target" "osg-$SERIES-$DVER-release-latest.rpm"
+                if [[ $target -nt RPM-GPG-KEY-OSG ]]; then
+                    rpm2cpio "$target" | cpio -i --quiet --to-stdout \
+                      ./etc/pki/rpm-gpg/RPM-GPG-KEY-OSG > RPM-GPG-KEY-OSG
+                fi
         else
                 echo "didn't find the osg-release rpm under $SERIES/$DVER/$REPO"
         fi
