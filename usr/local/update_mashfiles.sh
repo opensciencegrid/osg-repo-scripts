@@ -43,8 +43,8 @@ if [[ $SKIP_KOJI ]]; then
 else
   echo "Pulling osg tags from koji..."
 
-  koji --config=/etc/mash_koji_config list-tags 'el[56]-osg-*' 'osg-*-*-*' \
-      'goc-*-*' | ./map-osg-tags.pl > osg-tags.new || :
+  koji --config=/etc/mash_koji_config list-tags 'osg-*-*-*' 'goc-*-*' \
+  | ./map-osg-tags.pl > osg-tags.new || :
 
   if [[ -s osg-tags.new ]]; then
     # don't replace osg-tags if it hasn't changed
@@ -74,9 +74,9 @@ done
 
 if [[ $REMOVE_OLD ]]; then
   cd "$DESTDIR"
-  ls el[56]-osg-*.mash osg-*.mash 2>/dev/null | # list all osg .mash files
+  ls osg-*.mash 2>/dev/null                   | # list all osg .mash files
      sed 's/\.mash$//'                        | # strip .mash extension
-     fgrep -xvf <(sed 's/:.*//' "$SCRIPTDIR"/osg-tags)  | # omit valid tags
+     fgrep -xvf "$SCRIPTDIR"/osg-tags         | # omit valid tags
      sed 's/$/.mash/'                         | # add back .mash extension
      xargs -rd '\n' rm -v                       # remove unused osg .mash files
 fi
