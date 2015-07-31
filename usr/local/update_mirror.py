@@ -57,8 +57,7 @@ if socket.gethostname() == "repo-itb.grid.iu.edu":
     hostname="repo-itb.grid.iu.edu"
 
 def mkarchurl(host,tag,arch):
-    osg,series,dver,repo = tag.split('-')
-    return '/'.join([host,osg,series,dver,repo,arch])
+    return '/'.join([host] + tag.split('-') + [arch])
 
 def test(hosts,tag,arch):
     # repo.grid should always exist

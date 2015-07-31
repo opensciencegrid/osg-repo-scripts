@@ -4,24 +4,28 @@
 usage () {
   echo "Usage: $(basename "$0") TAG"
   echo "Where:"
-  echo "  TAG is osg-SERIES-DVER-REPO"
+  echo "  TAG is osg-SERIES-DVER-REPO or goc-DVER-REPO"
   echo "  SERIES is: 3.1, 3.2, etc, or upcoming"
   echo "  DVER is: el5, el6, etc."
-  echo "  REPO is: contrib, development, testing, or release"
+  echo "  REPO is: contrib, development, testing, or release for osg"
+  echo "       or: itb or production for goc"
   echo "  DESTDIR defaults to /etc/mash/"
   exit 1
 }
 
+[[ $# -eq 1 ]] || usage
 TAG=$1
-if [[ $# -ne 1 || $TAG != osg-*-*-* ]]; then
-  usage
-fi
-IFS='-' read osg SERIES DVER REPO <<< "$TAG"
+
+case $TAG in
+  osg-*-*-* ) IFS='-' read osg SERIES DVER REPO <<< "$TAG" ;;
+  goc-*-*   ) IFS='-' read SERIES DVER REPO <<< "$TAG" ;;
+          * ) usage ;;
+esac
 
 release_path="/usr/local/repo/osg/$SERIES/$DVER/$REPO"
 working_path="/usr/local/repo.working/osg/$SERIES/$DVER/$REPO"
 previous_path="/usr/local/repo.previous/osg/$SERIES/$DVER/$REPO"
-reponame=osg-$SERIES-$DVER-$REPO
+reponame=$TAG
 
 mkdir -p "$release_path" "$working_path" "$previous_path"
 mash "$reponame" -o "$working_path" -p "$release_path"

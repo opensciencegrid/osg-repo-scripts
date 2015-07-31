@@ -25,6 +25,9 @@ for my $tag (@tags) {
     $tag_map{$tag} = undef;
     #print "NEW: $tag\n";
   }
+  if ($tag =~ /^goc - (el[5-9]) - (itb|production)$/x) {
+    $tag_map{$tag} = undef;
+  }
 }
 
 for my $tag (sort keys %tag_map) {

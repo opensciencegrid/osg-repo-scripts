@@ -44,7 +44,7 @@ else
   echo "Pulling osg tags from koji..."
 
   koji --config=/etc/mash_koji_config list-tags 'el[56]-osg-*' 'osg-*-*-*' \
-  | ./map-osg-tags.pl > osg-tags.new || :
+      'goc-*-*' | ./map-osg-tags.pl > osg-tags.new || :
 
   if [[ -s osg-tags.new ]]; then
     # don't replace osg-tags if it hasn't changed
