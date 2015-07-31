@@ -43,8 +43,10 @@ if [[ $SKIP_KOJI ]]; then
 else
   echo "Pulling osg tags from koji..."
 
+  [[ -e osg-tags.exclude ]] || touch osg-tags.exclude
+
   koji --config=/etc/mash_koji_config list-tags 'osg-*-*-*' 'goc-*-*' \
-  | ./map-osg-tags.pl > osg-tags.new || :
+  | ./map-osg-tags.pl | fgrep -vxf osg-tags.exclude > osg-tags.new || :
 
   if [[ -s osg-tags.new ]]; then
     # don't replace osg-tags if it hasn't changed
