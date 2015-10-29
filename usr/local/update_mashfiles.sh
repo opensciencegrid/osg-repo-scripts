@@ -2,12 +2,15 @@
 set -e
 
 usage () {
-  echo "Usage: $(basename "$0") [--skip-koji] [--remove-old] [DESTDIR]"
+  echo "Usage: $(basename "$0") [options] [DESTDIR]"
   echo "Generates .mash files based on osg tags from koji."
-  echo "If --remove-old is specified, delete out-of-date osg .mash files too."
-  echo "If --skip-koji is specified, do not pull new tags from koji, but"
-  echo "instead use the osg-tags file saved from a previous run."
   echo "Write to DESTDIR, defaulting to /etc/mash"
+  echo
+  echo "Options:"
+  echo "  --remove-old   delete out-of-date osg .mash files too."
+  echo "  --skip-koji    do not pull new tags from koji, but instead use"
+  echo "                 the osg-tags file saved from a previous run."
+  echo "  --tags-only    only update osg-tags, don't update mashfiles."
   exit
 }
 
@@ -18,6 +21,7 @@ while [[ $1 = -* ]]; do
 case $1 in
   --skip-koji ) SKIP_KOJI=Y; shift ;;
   --remove-old ) REMOVE_OLD=Y; shift ;;
+  --tags-only ) TAGS_ONLY=Y; shift ;;
   --help | * ) usage ;;
 esac
 done
@@ -68,6 +72,11 @@ else
     rm -f osg-tags.new
     exit 1
   fi
+fi
+
+if [[ $TAGS_ONLY ]]; then
+  echo "Skipping mashfile update."
+  exit
 fi
 
 echo "Backing up existing .mash files to $DESTDIR/mash.bak/"
