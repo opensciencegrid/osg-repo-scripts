@@ -12,7 +12,7 @@ keys = 824b8603
 use_repoview = True
 repoviewurl = http://repo.grid.iu.edu/osg/{SERIES}/{DVER}/{REPO}/%(arch)s/
 repoviewtitle = "{REPOVIEWTITLE} - %(arch)s"
-arches = i386 x86_64
+arches = {ARCHES}
 delta = False
 # Change distro_tags as fedora-release version gets bumped
 distro_tags = cpe:/o:fedoraproject:fedora:15 rawhide

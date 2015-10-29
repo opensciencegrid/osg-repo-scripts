@@ -39,6 +39,11 @@ case $REPO in
         * ) LATEST="" ;;
 esac
 
+case $DVER in
+  el5|el6 ) ARCHES="i386 x86_64" ;;
+        * ) ARCHES="x86_64" ;;
+esac
+
 TEMPLATEDIR=$(dirname "$0")
 
 sed "
@@ -48,6 +53,7 @@ sed "
   s/{SERIES}/$SERIES/
   s/{REPOVIEWTITLE}/$REPOVIEWTITLE/
   s/{KOJI_TAG}/$TAG/
+  s/{ARCHES}/$ARCHES/
   s/{LATEST}/$LATEST/
 " "$TEMPLATEDIR"/mash.template > "$DESTDIR/$TAG.mash"
 
