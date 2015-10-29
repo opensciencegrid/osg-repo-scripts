@@ -106,7 +106,7 @@ os.symlink(".osg.prev", "/usr/local/mirror/osg")
 #create new mirror
 for tag in tags:
     log("checking for "+tag)
-    osg,series,dver,repo = tag.split('-')
+    series,dver,repo = tag.split('-')[-3:]
     repopath = '/'.join(["/usr/local/mirror/.osg.new",series,dver,repo])
     os.makedirs(repopath)
     for arch in archs:
