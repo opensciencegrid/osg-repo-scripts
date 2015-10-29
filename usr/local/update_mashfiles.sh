@@ -45,8 +45,14 @@ else
 
   [[ -e osg-tags.exclude ]] || touch osg-tags.exclude
 
+  osg_seriespat='[0-9]+\.[0-9]+|upcoming'
+  osg_repopat='contrib|development|release|testing|empty'
+  osg_tagpat="osg-($osg_seriespat)-el[5-9]-($osg_repopat)"
+  goc_tagpat='goc-el[5-9]-(itb|production)'
+
   koji --config=/etc/mash_koji_config list-tags 'osg-*-*-*' 'goc-*-*' \
-  | ./map-osg-tags.pl | fgrep -vxf osg-tags.exclude > osg-tags.new || :
+  | egrep -xe "$osg_tagpat" -e "$goc_tagpat"                          \
+  | fgrep -vxf osg-tags.exclude > osg-tags.new || :
 
   if [[ -s osg-tags.new ]]; then
     # don't replace osg-tags if it hasn't changed
