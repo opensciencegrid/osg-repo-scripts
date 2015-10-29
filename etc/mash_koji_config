@@ -4,7 +4,5 @@
 server = http://koji-hub.batlab.org/kojihub
 ;url of web interface
 weburl = http://koji-hub.batlab.org/koji
-;url of package download site
-pkgurl = http://koji-hub.batlab.org/packages
 ;path to the koji top directory
 topdir = /mnt/koji
