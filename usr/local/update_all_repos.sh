@@ -8,6 +8,10 @@ usage () {
   exit
 }
 
+datemsg () {
+  echo "$(date):" "$@"
+}
+
 # cd /usr/local
 cd "$(dirname "$0")"
 LOGDIR=/var/log/repo
@@ -22,8 +26,8 @@ esac
 done
 
 if [[ ! -e osg-tags ]]; then
-  echo "$PWD/osg-tags is missing."
-  echo "Please run $PWD/update_mashfiles.sh to generate"
+  datemsg "$PWD/osg-tags is missing."
+  datemsg "Please run $PWD/update_mashfiles.sh to generate"
   exit 1
 fi >&2
 
@@ -32,15 +36,18 @@ fi >&2
 
 exec 299> "$LOCKDIR"/all-repos.lk
 if ! flock -n 299; then
-  echo "Can't acquire lock, is $(basename "$0") already running?" >&2
+  datemsg "Can't acquire lock, is $(basename "$0") already running?" >&2
   exit 1
 fi
 
+datemsg "Updating all mash repos..."
 for tag in $(< osg-tags); do
   tag=${tag%%:*}  # strip old-style mapping, if present
-  echo "Running update_repo.sh for tag $tag ..."
+  datemsg "Running update_repo.sh for tag $tag ..."
   ./update_repo.sh "$tag" > "$LOGDIR/update_repo.$tag.log" \
                          2> "$LOGDIR/update_repo.$tag.err" \
-  || echo "mash failed for $tag - please see error log" >&2
+  || datemsg "mash failed for $tag - please see error log" >&2
 done
+datemsg "Finished updating all mash repos."
+echo
 
