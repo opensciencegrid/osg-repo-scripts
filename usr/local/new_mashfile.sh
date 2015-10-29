@@ -42,6 +42,7 @@ esac
 TEMPLATEDIR=$(dirname "$0")
 
 sed "
+  s/{YUMREPO}/$TAG/
   s/{REPO}/$REPO/
   s/{DVER}/$DVER/
   s/{SERIES}/$SERIES/

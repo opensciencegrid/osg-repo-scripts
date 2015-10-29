@@ -1,4 +1,4 @@
-[osg-{SERIES}-{DVER}-{REPO}]
+[{YUMREPO}]
 rpm_path = %(arch)s
 repodata_path = %(arch)s
 source_path = source/SRPMS
