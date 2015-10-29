@@ -42,7 +42,6 @@ fi
 
 datemsg "Updating all mash repos..."
 for tag in $(< osg-tags); do
-  tag=${tag%%:*}  # strip old-style mapping, if present
   datemsg "Running update_repo.sh for tag $tag ..."
   ./update_repo.sh "$tag" > "$LOGDIR/update_repo.$tag.log" \
                          2> "$LOGDIR/update_repo.$tag.err" \
