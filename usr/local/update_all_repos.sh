@@ -43,9 +43,16 @@ fi
 datemsg "Updating all mash repos..."
 for tag in $(< osg-tags); do
   datemsg "Running update_repo.sh for tag $tag ..."
+  timeout=3600
+  tstart=$(date +%s)
+  /usr/bin/timed-run $timeout \
   ./update_repo.sh "$tag" > "$LOGDIR/update_repo.$tag.log" \
                          2> "$LOGDIR/update_repo.$tag.err" \
   || datemsg "mash failed for $tag - please see error log" >&2
+  tend=$(date +%s)
+  if (( tend - tstart >= timeout )); then
+    datemsg "Warning; timed out updating repo: $tag" >> "$LOGDIR/timeouts.log"
+  fi
 done
 datemsg "Finished updating all mash repos."
 echo
