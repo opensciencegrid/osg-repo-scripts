@@ -3,7 +3,7 @@ set -e
 
 usage () {
   echo "Usage: $(basename "$0") [-L LOGDIR] [-K LOCKDIR]"
-  echo "Runs update_repo.sh on all tags in $PWD/osg-tags"
+  echo "Runs update_repo.sh on all tags in $OSGTAGS"
   echo "Logs are written to LOGDIR, /var/log/repo by default"
   exit
 }
@@ -16,6 +16,7 @@ datemsg () {
 cd "$(dirname "$0")"
 LOGDIR=/var/log/repo
 LOCKDIR=/var/lock/repo
+OSGTAGS=/etc/osg-koji-tags/osg-tags
 
 while [[ $1 = -* ]]; do
 case $1 in
@@ -25,9 +26,9 @@ case $1 in
 esac
 done
 
-if [[ ! -e osg-tags ]]; then
-  datemsg "$PWD/osg-tags is missing."
-  datemsg "Please run $PWD/update_mashfiles.sh to generate"
+if [[ ! -e $OSGTAGS ]]; then
+  datemsg "$OSGTAGS is missing."
+  datemsg "Please run update_mashfiles.sh to generate"
   exit 1
 fi >&2
 
@@ -41,7 +42,7 @@ if ! flock -n 299; then
 fi
 
 datemsg "Updating all mash repos..."
-for tag in $(< osg-tags); do
+for tag in $(< $OSGTAGS); do
   datemsg "Running update_repo.sh for tag $tag ..."
   timeout=3600
   tstart=$(date +%s)
