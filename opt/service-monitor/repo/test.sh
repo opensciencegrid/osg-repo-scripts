@@ -12,7 +12,7 @@ logdir=/var/log/repo
 
 #run logalert for each repo
 
-for repo in $(< /usr/local/osg-tags); do
+for repo in $(< /etc/osg-koji-tags/osg-tags); do
   log=$logdir/update_repo.$repo.err
 
   grep ERR "$log" | tail -100 | $logalert "$service.$repo.error" "[$service] [ERROR] $log"

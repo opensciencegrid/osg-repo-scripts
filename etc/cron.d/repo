@@ -2,13 +2,13 @@
 */15 * * * * root /usr/local/awstats/wwwroot/cgi-bin/awstats.pl -update -config=repo.grid.iu.edu >> /usr/local/awstats/log.txt
 
 #update all .mash files, once daily
-#50 7 * * * root /usr/local/update_mashfiles.sh > /var/log/repo/update_mashfiles.log 2> /var/log/repo/update_mashfiles.err
+#50 7 * * * root /usr/bin/update_mashfiles.sh > /var/log/repo/update_mashfiles.log 2> /var/log/repo/update_mashfiles.err
 
 #update all mash repos, every half-hour
-1-59/30 * * * * root /usr/local/update_all_repos.sh > /var/log/repo/update_all_repos.log 2> /var/log/repo/update_all_repos.err
+1-59/30 * * * * root /usr/bin/update_all_repos.sh > /var/log/repo/update_all_repos.log 2> /var/log/repo/update_all_repos.err
 
 #update mirror
-29-59/30 * * * *  root /usr/local/update_mirror.py > /var/log/repo/update_mirror.log 2> /var/log/repo/update_mirror.err
+29-59/30 * * * *  root /usr/bin/update_mirror.py > /var/log/repo/update_mirror.log 2> /var/log/repo/update_mirror.err
 
 #service monitor
 */15 * * * * root /opt/service-monitor/repo/test.sh

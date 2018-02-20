@@ -16,6 +16,7 @@ usage () {
 
 DESTDIR=/etc/mash
 SCRIPTDIR=$(cd "$(dirname "$0")"; pwd)
+OSGTAGS=/etc/osg-koji-tags/osg-tags
 
 while [[ $1 = -* ]]; do
 case $1 in
@@ -38,7 +39,7 @@ fi
 cd "$SCRIPTDIR"
 
 if [[ $SKIP_KOJI ]]; then
-  if [[ ! -s osg-tags ]]; then
+  if [[ ! -s $OSGTAGS ]]; then
     echo "--skip-koji was specified but no existing osg-tags were found" >&2
     exit 1
   else
@@ -47,7 +48,7 @@ if [[ $SKIP_KOJI ]]; then
 else
   echo "Pulling osg tags from koji..."
 
-  [[ -e osg-tags.exclude ]] || touch osg-tags.exclude
+  [[ -e $OSGTAGS.exclude ]] || touch $OSGTAGS.exclude
 
   osg_seriespat='[0-9]+\.[0-9]+|upcoming'
   osg_repopat='contrib|development|release|testing|empty'
@@ -56,20 +57,20 @@ else
 
   koji --config=/etc/mash_koji_config list-tags 'osg-*-*-*' 'goc-*-*' \
   | egrep -xe "$osg_tagpat" -e "$goc_tagpat"                          \
-  | fgrep -vxf osg-tags.exclude > osg-tags.new || :
+  | fgrep -vxf $OSGTAGS.exclude > $OSGTAGS.new || :
 
-  if [[ -s osg-tags.new ]]; then
+  if [[ -s $OSGTAGS.new ]]; then
     # don't replace osg-tags if it hasn't changed
-    if [[ -e osg-tags ]] && diff -q osg-tags osg-tags.new >/dev/null; then
+    if [[ -e $OSGTAGS ]] && diff -q $OSGTAGS $OSGTAGS.new >/dev/null; then
       echo "osg-tags from koji have not changed, using existing."
-      rm -f osg-tags.new
+      rm -f $OSGTAGS.new
     else
       echo "Using updated osg-tags"
-      mv -bS.prev osg-tags.new osg-tags
+      mv -bS.prev $OSGTAGS.new $OSGTAGS
     fi
   else
     echo "Could not retrieve any osg tags from koji, aborting." >&2
-    rm -f osg-tags.new
+    rm -f $OSGTAGS.new
     exit 1
   fi
 fi
@@ -84,7 +85,7 @@ rm -rf "$DESTDIR/mash.bak/"
 mkdir "$DESTDIR/mash.bak/"
 cp "$DESTDIR"/*.mash "$DESTDIR/mash.bak/" 2>/dev/null || :
 
-for tag in $(< osg-tags); do
+for tag in $(< $OSGTAGS); do
   echo "Creating mash file for $tag"
   ./new_mashfile.sh "$tag" "$DESTDIR"
 done
@@ -93,7 +94,7 @@ if [[ $REMOVE_OLD ]]; then
   cd "$DESTDIR"
   ls osg-*.mash 2>/dev/null                   | # list all osg .mash files
      sed 's/\.mash$//'                        | # strip .mash extension
-     fgrep -xvf "$SCRIPTDIR"/osg-tags         | # omit valid tags
+     fgrep -xvf $OSGTAGS                      | # omit valid tags
      sed 's/$/.mash/'                         | # add back .mash extension
      xargs -rd '\n' rm -v                       # remove unused osg .mash files
 fi

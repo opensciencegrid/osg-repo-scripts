@@ -26,7 +26,7 @@ def lock(path):
 
 lock("/var/lock/repo/update-mirror.lk")
 
-tagfile = open("/usr/local/osg-tags", "r")
+tagfile = open("/etc/osg-koji-tags/osg-tags", "r")
 tags = [tag.rstrip("\n").split(":")[0] for tag in tagfile]
 tags = sorted(set(tags))
 tagfile.close()
