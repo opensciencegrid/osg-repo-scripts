@@ -7,6 +7,7 @@ Group:		System Environment/Tools
 License:	ASL 2.0
 URL:		https://github.com/opensciencegrid/mash-scripts
 Source0:	%{name}-%{version}.tar.gz
+BuildArch:	noarch
 
 #BuildRequires:	
 Requires:	mash
