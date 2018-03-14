@@ -44,7 +44,7 @@ case $DVER in
         * ) ARCHES="x86_64" ;;
 esac
 
-TEMPLATEDIR=$(dirname "$0")
+TEMPLATEDIR=/usr/share/repo
 
 sed "
   s/{YUMREPO}/$TAG/
