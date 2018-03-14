@@ -12,6 +12,10 @@ BuildArch:	noarch
 #BuildRequires:	
 Requires:	mash
 Requires:	repoview
+# does not work with createrepo 0.9.9-26 from EPEL
+Requires:	createrepo >= 0.9.9-24
+Requires:	createrepo <  0.9.9-25
+Conflicts:	createrepo >= 0.9.9-25
 
 %description
 %{summary}
