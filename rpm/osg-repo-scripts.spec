@@ -11,6 +11,7 @@ BuildArch:	noarch
 
 #BuildRequires:	
 Requires:	mash
+Requires:	repoview
 
 %description
 %{summary}
