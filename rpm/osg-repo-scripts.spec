@@ -9,7 +9,7 @@ URL:		https://github.com/opensciencegrid/mash-scripts
 Source0:	%{name}-%{version}.tar.gz
 
 #BuildRequires:	
-#Requires:	
+Requires:	mash
 
 %description
 %{summary}
