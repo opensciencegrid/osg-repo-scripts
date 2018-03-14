@@ -1,6 +1,6 @@
 Name:		osg-repo-scripts
-Version:	0.2
-Release:	0.1%{?dist}
+Version:	1.0
+Release:	1%{?dist}
 Summary:	rpm repo update scripts for osg repo servers
 
 Group:		System Environment/Tools
@@ -66,6 +66,6 @@ install -m 0644 share/repo/mash.template $RPM_BUILD_ROOT%{_datadir}/repo/
 %ghost             %{_sysconfdir}/osg-koji-tags/osg-tags
 
 %changelog
-* Mon Feb 19 2018 Carl Edquist <edquist@cs.wisc.edu> - 0.1-0.1
+* Wed Mar 14 2018 Carl Edquist <edquist@cs.wisc.edu> - 1.0-1
 - Initial rpm packaging
 
