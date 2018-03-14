@@ -33,7 +33,6 @@ install -m 0755 bin/update_mirror.py    $RPM_BUILD_ROOT%{_bindir}/
 install -m 0755 bin/update_repo.sh      $RPM_BUILD_ROOT%{_bindir}/
 
 install -m 0644 etc/cron.d/repo      $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/
-install -m 0644 etc/mash/mash.conf   $RPM_BUILD_ROOT%{_sysconfdir}/mash/
 install -m 0644 etc/mash_koji_config $RPM_BUILD_ROOT%{_sysconfdir}/
 install -m 0644 etc/rsyncd.conf      $RPM_BUILD_ROOT%{_sysconfdir}/
 install -m 0644 etc/osg-koji-tags/osg-tags.exclude \
@@ -42,6 +41,7 @@ install -m 0644 etc/osg-koji-tags/osg-tags.exclude \
 # populated by update_mashfiles.sh
 touch $RPM_BUILD_ROOT%{_sysconfdir}/osg-koji-tags/osg-tags
 
+install -m 0644 etc/mash/mash.conf       $RPM_BUILD_ROOT%{_datadir}/repo/
 install -m 0644 share/repo/mash.template $RPM_BUILD_ROOT%{_datadir}/repo/
 
 %files
@@ -51,9 +51,9 @@ install -m 0644 share/repo/mash.template $RPM_BUILD_ROOT%{_datadir}/repo/
 %{_bindir}/update_mashfiles.sh
 %{_bindir}/update_mirror.py
 %{_bindir}/update_repo.sh
+%{_datadir}/repo/mash.conf
 %{_datadir}/repo/mash.template
 %config(noreplace) %{_sysconfdir}/cron.d/repo
-%config(noreplace) %{_sysconfdir}/mash/mash.conf
 %config(noreplace) %{_sysconfdir}/mash_koji_config
 %config(noreplace) %{_sysconfdir}/rsyncd.conf
 %config(noreplace) %{_sysconfdir}/osg-koji-tags/osg-tags.exclude
