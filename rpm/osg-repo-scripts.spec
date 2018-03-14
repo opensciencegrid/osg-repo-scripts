@@ -1,5 +1,5 @@
 Name:		osg-repo-scripts
-Version:	0.1
+Version:	0.2
 Release:	0.1%{?dist}
 Summary:	rpm repo update scripts for osg repo servers
 
