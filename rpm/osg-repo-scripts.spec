@@ -1,6 +1,6 @@
 Name:		osg-repo-scripts
 Version:	1.0
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	rpm repo update scripts for osg repo servers
 
 Group:		System Environment/Tools
@@ -40,7 +40,6 @@ install -m 0755 bin/update_repo.sh      $RPM_BUILD_ROOT%{_bindir}/
 
 install -m 0644 etc/cron.d/repo      $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/
 install -m 0644 etc/mash_koji_config $RPM_BUILD_ROOT%{_sysconfdir}/
-install -m 0644 etc/rsyncd.conf      $RPM_BUILD_ROOT%{_sysconfdir}/
 install -m 0644 etc/osg-koji-tags/osg-tags.exclude \
                        $RPM_BUILD_ROOT%{_sysconfdir}/osg-koji-tags/
 
@@ -48,6 +47,7 @@ install -m 0644 etc/osg-koji-tags/osg-tags.exclude \
 touch $RPM_BUILD_ROOT%{_sysconfdir}/osg-koji-tags/osg-tags
 
 install -m 0644 etc/mash/mash.conf       $RPM_BUILD_ROOT%{_datadir}/repo/
+install -m 0644 etc/rsyncd.conf          $RPM_BUILD_ROOT%{_datadir}/repo/
 install -m 0644 share/repo/mash.template $RPM_BUILD_ROOT%{_datadir}/repo/
 
 %files
@@ -59,13 +59,16 @@ install -m 0644 share/repo/mash.template $RPM_BUILD_ROOT%{_datadir}/repo/
 %{_bindir}/update_repo.sh
 %{_datadir}/repo/mash.conf
 %{_datadir}/repo/mash.template
+%{_datadir}/repo/rsyncd.conf
 %config(noreplace) %{_sysconfdir}/cron.d/repo
 %config(noreplace) %{_sysconfdir}/mash_koji_config
-%config(noreplace) %{_sysconfdir}/rsyncd.conf
 %config(noreplace) %{_sysconfdir}/osg-koji-tags/osg-tags.exclude
 %ghost             %{_sysconfdir}/osg-koji-tags/osg-tags
 
 %changelog
+* Thu Mar 15 2018 Carl Edquist <edquist@cs.wisc.edu> - 1.0-2
+- Put rsyncd.conf under /usr/share to avoid conflict in el7 (SOFTWARE-3139)
+
 * Wed Mar 14 2018 Carl Edquist <edquist@cs.wisc.edu> - 1.0-1
-- Initial rpm packaging
+- Initial rpm packaging (SOFTWARE-3139)
 
