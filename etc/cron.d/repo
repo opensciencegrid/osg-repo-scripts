@@ -1,5 +1,5 @@
 #awstat
-*/15 * * * * root /usr/local/awstats/wwwroot/cgi-bin/awstats.pl -update -config=repo.grid.iu.edu >> /usr/local/awstats/log.txt
+*/15 * * * * root /usr/local/awstats/wwwroot/cgi-bin/awstats.pl -update -config=repo.opensciencegrid.org >> /usr/local/awstats/log.txt
 
 #update all .mash files, once daily
 #50 7 * * * root /usr/bin/update_mashfiles.sh > /var/log/repo/update_mashfiles.log 2> /var/log/repo/update_mashfiles.err

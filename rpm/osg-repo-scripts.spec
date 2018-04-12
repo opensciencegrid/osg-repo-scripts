@@ -1,6 +1,6 @@
 Name:		osg-repo-scripts
-Version:	1.0
-Release:	3%{?dist}
+Version:	1.1
+Release:	1%{?dist}
 Summary:	rpm repo update scripts for osg repo servers
 
 Group:		System Environment/Tools
@@ -68,6 +68,9 @@ install -m 0644 share/repo/mash.template $RPM_BUILD_ROOT%{_datadir}/repo/
 %dir               %{_usr}/local/mirror
 
 %changelog
+* Thu Apr 12 2018 Carl Edquist <edquist@cs.wisc.edu> - 1.1-1
+- Replace grid.iu.edu with opensciencegrid.org (SOFTWARE-3208)
+
 * Thu Mar 15 2018 Carl Edquist <edquist@cs.wisc.edu> - 1.0-3
 - Initial rpm packaging (SOFTWARE-3139)
 
