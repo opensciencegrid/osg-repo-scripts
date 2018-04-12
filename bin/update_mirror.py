@@ -52,17 +52,17 @@ log("threshold:"+str(threshold)+" (hours)")
 log("timeout:"+str(timeout)+" (seconds)")
 print
 
-#gethostname() returns actual instance name (like repo2.grid.iu.edu)
-hostname="repo.grid.iu.edu"
-if socket.gethostname() == "repo-itb.grid.iu.edu":
-    hostname="repo-itb.grid.iu.edu"
+#gethostname() returns actual instance name (like repo2.opensciencegrid.org)
+hostname="repo.opensciencegrid.org"
+if socket.gethostname() == "repo-itb.opensciencegrid.org":
+    hostname="repo-itb.opensciencegrid.org"
 
 def mkarchurl(host,tag,arch):
     series,dver,repo = tag.split('-')[-3:]
     return '/'.join([host,'osg',series,dver,repo,arch])
 
 def test(hosts,tag,arch):
-    # repo.grid should always exist
+    # always include repo.opensciencegrid.org in list
     list = [mkarchurl('http://'+hostname,tag,arch)]
     for host in hosts:
         url = mkarchurl(host,tag,arch)
