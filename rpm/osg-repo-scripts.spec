@@ -1,5 +1,5 @@
 Name:		osg-repo-scripts
-Version:	1.1
+Version:	1.2
 Release:	1%{?dist}
 Summary:	rpm repo update scripts for osg repo servers
 
@@ -68,6 +68,9 @@ install -m 0644 share/repo/mash.template $RPM_BUILD_ROOT%{_datadir}/repo/
 %dir               %{_usr}/local/mirror
 
 %changelog
+* Tue May 29 2018 Edgar Fajardo <emfajard@ucsd.edu> - 1.2-1
+- Remove CHTC from the mirrorlist
+
 * Thu Apr 12 2018 Carl Edquist <edquist@cs.wisc.edu> - 1.1-1
 - Replace grid.iu.edu with opensciencegrid.org (SOFTWARE-3208)
 
