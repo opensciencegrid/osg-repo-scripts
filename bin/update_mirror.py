@@ -34,7 +34,7 @@ tagfile.close()
 archs = ["i386", "x86_64"]
 mirrorhosts = [
     # list of mirror base urls, where osg/series/dver/repo/arch can be found
-    "http://mirror.batlab.org/repos",
+    "http://mirror.hep.wisc.edu/upstream",
     "http://t2.unl.edu",
     "http://mirror.grid.uchicago.edu/pub"
 ]
