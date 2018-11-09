@@ -51,18 +51,3 @@ if [[ $REPO = release && $SERIES != upcoming ]]; then
         fi
 fi
 
-# temporarily create el7 release-latest symlinks for development,
-# until we create the osg-3.x-el7-release repos
-if [[ $DVER = el7 && $REPO = development && $SERIES != upcoming ]]; then
-        echo "creating osg-$SERIES-$DVER-release-latest symlink"
-        cd /usr/local/repo/osg/"$SERIES/$DVER/$REPO"/x86_64
-        # use ls version-sort so that 3.2-11 > 3.2-2
-        target=$(ls -v osg-release-[1-9]*.rpm | tail -1)
-        echo "target: $target"
-        if [[ $target ]]; then
-                ln -fs "$target" "osg-$SERIES-$DVER-release-latest.rpm"
-        else
-                echo "didn't find the osg-release rpm under $SERIES/$DVER/$REPO"
-        fi
-fi
-
