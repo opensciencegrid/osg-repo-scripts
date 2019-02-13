@@ -53,7 +53,8 @@ print
 
 #gethostname() returns actual instance name (like repo2.opensciencegrid.org)
 hostname="repo.opensciencegrid.org"
-if socket.gethostname() == "repo-itb.opensciencegrid.org":
+if socket.gethostname() in ("repo-itb.opensciencegrid.org",
+                            "hcc-osg-software2.unl.edu"):
     hostname="repo-itb.opensciencegrid.org"
 
 def mkarchurl(host,tag,arch):
