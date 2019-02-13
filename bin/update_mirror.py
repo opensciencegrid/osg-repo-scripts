@@ -51,10 +51,12 @@ log("threshold:"+str(threshold)+" (hours)")
 log("timeout:"+str(timeout)+" (seconds)")
 print
 
+def host2ip(name):
+    return socket.getaddrinfo(name, 80, socket.AF_INET)[0][4][0]
+
 #gethostname() returns actual instance name (like repo2.opensciencegrid.org)
 hostname="repo.opensciencegrid.org"
-if socket.gethostname() in ("repo-itb.opensciencegrid.org",
-                            "hcc-osg-software2.unl.edu"):
+if host2ip(socket.gethostname()) == host2ip("repo-itb.opensciencegrid.org"):
     hostname="repo-itb.opensciencegrid.org"
 
 def mkarchurl(host,tag,arch):
