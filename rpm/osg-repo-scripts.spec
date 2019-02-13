@@ -1,5 +1,5 @@
 Name:		osg-repo-scripts
-Version:	1.3
+Version:	1.3.1
 Release:	1%{?dist}
 Summary:	rpm repo update scripts for osg repo servers
 
@@ -68,6 +68,9 @@ install -m 0644 share/repo/mash.template $RPM_BUILD_ROOT%{_datadir}/repo/
 %dir               %{_usr}/local/mirror
 
 %changelog
+* Wed Feb 13 2019 Carl Edquist <edquist@cs.wisc.edu> - 1.3.1-1
+- Fix mirror hostname for new repo-itb host (SOFTWARE-3465)
+
 * Mon Feb 11 2019 Carl Edquist <edquist@cs.wisc.edu> - 1.3-1
 - Add support for rolling release repos (SOFTWARE-3465)
 
