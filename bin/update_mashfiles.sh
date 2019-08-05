@@ -54,9 +54,11 @@ else
   osg_repopat='contrib|development|release|rolling|testing|empty'
   osg_tagpat="osg-($osg_seriespat)-el[5-9]-($osg_repopat)"
   goc_tagpat='goc-el[5-9]-(itb|production)'
+  devops_tagpat='devops-el[7-9]-(itb|production)'
 
   koji --config=/etc/mash_koji_config list-tags 'osg-*-*-*' 'goc-*-*' \
-  | egrep -xe "$osg_tagpat" -e "$goc_tagpat"                          \
+                                                'devops-*-*'          \
+  | egrep -xe "$osg_tagpat" -e "$goc_tagpat" -e "$devops_tagpat"      \
   | fgrep -vxf $OSGTAGS.exclude > $OSGTAGS.new || :
 
   if [[ -s $OSGTAGS.new ]]; then

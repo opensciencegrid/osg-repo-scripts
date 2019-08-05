@@ -3,11 +3,11 @@
 usage () {
   echo "Usage: $(basename "$0") TAG [DESTDIR]"
   echo "Where:"
-  echo "  TAG is osg-SERIES-DVER-REPO or goc-DVER-REPO"
+  echo "  TAG is osg-SERIES-DVER-REPO or devops-DVER-REPO"
   echo "  SERIES is: 3.1, 3.2, etc, or upcoming"
   echo "  DVER is: el5, el6, etc."
   echo "  REPO is: contrib, development, testing, or release for osg"
-  echo "       or: itb or production for goc"
+  echo "       or: itb or production for devops (formerly goc)"
   echo "  DESTDIR defaults to /etc/mash/"
   echo
   echo "Writes DESTDIR/TAG.mash"
@@ -27,6 +27,7 @@ title () { python -c 'import sys; print sys.argv[1].title()' "$*" ; }
 TAG=$1
 case $TAG in
   osg-*-*-* ) IFS='-' read osg SERIES DVER REPO <<< "$TAG" ;;
+  devops-*-*| \
   goc-*-*   ) IFS='-' read SERIES DVER REPO <<< "$TAG" ;;
           * ) usage ;;
 esac
