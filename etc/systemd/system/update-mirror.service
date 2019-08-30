@@ -1,0 +1,11 @@
+[Unit]
+Description=cadist update for repo servers
+After=syslog.target network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/update_mirror.py
+
+[Install]
+WantedBy=multi-user.target
