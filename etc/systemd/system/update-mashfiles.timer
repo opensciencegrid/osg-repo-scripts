@@ -1,0 +1,12 @@
+[Unit]
+Description=Update all .mash files, once daily
+After=syslog.target network.target
+Wants=network.target
+
+[Timer]
+OnActiveSec=10s
+OnUnitActiveSec=24h
+RandomizedDelaySec=3m
+
+[Install]
+WantedBy=timers.target
