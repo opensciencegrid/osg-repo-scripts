@@ -1,0 +1,12 @@
+[Unit]
+Description=Update all mash repos, every 30 minutes
+After=syslog.target network.target
+Wants=network.target
+
+[Timer]
+OnActiveSec=0s
+OnUnitActiveSec=30m
+RandomizedDelaySec=3m
+
+[Install]
+WantedBy=timers.target
