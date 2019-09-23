@@ -4,7 +4,7 @@ After=syslog.target network.target
 Wants=network.target
 
 [Service]
-ExecStart=/bin/sh -c '/usr/bin/update_all_repos.sh > /var/log/repo/update_all_repos.log 2> /var/log/repo/update_all_repos.err'
+ExecStart=/usr/bin/update_all_repos.sh
 
 [Install]
 WantedBy=multi-user.target
