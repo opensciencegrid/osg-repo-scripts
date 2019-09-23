@@ -4,7 +4,7 @@ After=syslog.target network.target
 Wants=network.target
 
 [Service]
-ExecStart=/bin/sh -c '/usr/bin/update_mashfiles.sh > /var/log/repo/update_mashfiles.log 2> /var/log/repo/update_mashfiles.err'
+ExecStart=/usr/bin/update_mashfiles.sh
 
 [Install]
 WantedBy=multi-user.target
