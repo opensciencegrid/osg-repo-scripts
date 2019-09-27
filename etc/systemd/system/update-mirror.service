@@ -4,6 +4,7 @@ After=syslog.target network.target
 Wants=network.target
 
 [Service]
-ExecStart=/usr/bin/update_mirror.py
+ExecStart=/bin/bash -c "(/usr/bin/update_mirror.py | tee /var/log/repo/update_mirror.log) 2> >(tee /var/log/repo/update_mirror.err)"
+
 [Install]
 WantedBy=multi-user.target
