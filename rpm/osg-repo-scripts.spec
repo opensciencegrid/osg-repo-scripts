@@ -1,5 +1,5 @@
 Name:		osg-repo-scripts
-Version:	1.4
+Version:	1.5
 Release:	1%{?dist}
 Summary:	rpm repo update scripts for osg repo servers
 
@@ -68,6 +68,9 @@ install -m 0644 share/repo/mash.template $RPM_BUILD_ROOT%{_datadir}/repo/
 %dir               %{_usr}/local/mirror
 
 %changelog
+* Fri Apr 24 2020 Carl Edquist <edquist@cs.wisc.edu> - 1.5-1
+- Include non-latest packages in devops-* repos (SOFTWARE-4075)
+
 * Mon Aug 05 2019 Carl Edquist <edquist@cs.wisc.edu> - 1.4-1
 - Add support for devops repos (SOFTWARE-3291)
 
