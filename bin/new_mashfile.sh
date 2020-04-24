@@ -36,7 +36,7 @@ esac
 REPOVIEWTITLE="OSG $(title $SERIES) RH$(upper $DVER) $(title $REPO)"
 
 case $REPO in
-  release ) LATEST="latest=false" ;;
+  release | itb | production ) LATEST="latest=false" ;;
         * ) LATEST="" ;;
 esac
 
