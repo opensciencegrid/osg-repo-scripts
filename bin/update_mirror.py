@@ -117,6 +117,9 @@ for tag in tags:
             f.write(m+"\n")
         f.close()
 
+# SOFTWARE-4420: temporary 3.5-upcoming symlink to upcoming
+os.symlink("/usr/local/mirror/.osg.new/3.5-upcoming", "upcoming")
+
 #point mirror to new
 os.unlink("/usr/local/mirror/osg")
 os.symlink(".osg.new", "/usr/local/mirror/osg")
