@@ -57,7 +57,7 @@ if socket.gethostname() == "repo-itb.opensciencegrid.org":
     hostname="repo-itb.opensciencegrid.org"
 
 def tagsplit(tag):
-    if 'upcoming' in tag:
+    if 'upcoming' in tag and tag.startswith("osg-3."):
         series,_,dver,repo = tag.split('-')[-4:]
         series += "-upcoming"
     else:
@@ -133,4 +133,3 @@ os.unlink("/usr/local/mirror/osg")
 os.symlink(".osg.new", "/usr/local/mirror/osg")
 
 log("all done")
-
