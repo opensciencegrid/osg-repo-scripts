@@ -5,8 +5,8 @@ usage () {
   echo "Usage: $(basename "$0") TAG"
   echo "Where:"
   echo "  TAG is osg-SERIES-DVER-REPO or devops-DVER-REPO"
-  echo "  SERIES is: 3.1, 3.2, etc, or upcoming"
-  echo "  DVER is: el5, el6, etc."
+  echo "  SERIES is: 3.X (3.5, 3.6, etc), or 3.X-upcoming"
+  echo "  DVER is: el7, el8, etc."
   echo "  REPO is: contrib, development, testing, or release for osg"
   echo "       or: itb or production for devops (formerly goc)"
   echo "  DESTDIR defaults to /etc/mash/"
@@ -17,6 +17,8 @@ usage () {
 TAG=$1
 
 case $TAG in
+  osg-3.*-upcoming-*-* ) IFS='-' read osg SERIES upcoming DVER REPO <<< "$TAG"
+                         SERIES+=-$upcoming ;;
   osg-*-*-* ) IFS='-' read osg SERIES DVER REPO <<< "$TAG" ;;
   devops-*-*| \
   goc-*-*   ) IFS='-' read SERIES DVER REPO <<< "$TAG" ;;
@@ -39,7 +41,7 @@ rm -rf "$previous_path"
 mv "$release_path" "$previous_path"
 mv "$working_path/$reponame" "$release_path"
 
-if [[ $REPO = release && $SERIES != upcoming ]]; then
+if [[ $REPO = release && $SERIES != *-upcoming ]]; then
         echo "creating osg-$SERIES-$DVER-release-latest symlink"
         cd /usr/local/repo/osg/"$SERIES"
         # use ls version-sort so that 3.2-11 > 3.2-2

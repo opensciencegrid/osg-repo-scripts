@@ -50,7 +50,7 @@ else
 
   [[ -e $OSGTAGS.exclude ]] || touch $OSGTAGS.exclude
 
-  osg_seriespat='[0-9]+\.[0-9]+|upcoming'
+  osg_seriespat='[0-9]+\.[0-9]+(-upcoming)?'
   osg_repopat='contrib|development|release|rolling|testing|empty'
   osg_tagpat="osg-($osg_seriespat)-el[5-9]-($osg_repopat)"
   goc_tagpat='goc-el[5-9]-(itb|production)'
