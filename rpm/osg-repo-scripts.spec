@@ -1,5 +1,5 @@
 Name:		osg-repo-scripts
-Version:	1.9
+Version:	1.9.1
 Release:	1%{?dist}
 Summary:	rpm repo update scripts for osg repo servers
 
@@ -68,6 +68,9 @@ install -m 0644 share/repo/mash.template $RPM_BUILD_ROOT%{_datadir}/repo/
 %dir               %{_usr}/local/mirror
 
 %changelog
+* Wed Feb 10 2021 Carl Edquist <edquist@cs.wisc.edu> - 1.9.1-1
+- Fix up mirrorlist script (SOFTWARE-4475)
+
 * Wed Feb 10 2021 Carl Edquist <edquist@cs.wisc.edu> - 1.9-1
 - Use new 3.X-upcoming series names (SOFTWARE-4475)
 
