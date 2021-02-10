@@ -56,8 +56,16 @@ hostname="repo.opensciencegrid.org"
 if socket.gethostname() == "repo-itb.opensciencegrid.org":
     hostname="repo-itb.opensciencegrid.org"
 
+def tagsplit(tag):
+    if 'upcoming' in tag and tag.startswith("osg-3."):
+        series,_,dver,repo = tag.split('-')[-4:]
+        series += "-upcoming"
+    else:
+        series,dver,repo = tag.split('-')[-3:]
+    return series,dver,repo
+
 def mkarchurl(host,tag,arch):
-    series,dver,repo = tag.split('-')[-3:]
+    series,dver,repo = tagsplit(tag)
     return '/'.join([host,'osg',series,dver,repo,arch])
 
 def test(hosts,tag,arch):
@@ -107,7 +115,7 @@ os.symlink(".osg.prev", "/usr/local/mirror/osg")
 #create new mirror
 for tag in tags:
     log("checking for "+tag)
-    series,dver,repo = tag.split('-')[-3:]
+    series,dver,repo = tagsplit(tag)
     repopath = '/'.join(["/usr/local/mirror/.osg.new",series,dver,repo])
     os.makedirs(repopath)
     for arch in archs:
@@ -125,4 +133,3 @@ os.unlink("/usr/local/mirror/osg")
 os.symlink(".osg.new", "/usr/local/mirror/osg")
 
 log("all done")
-
