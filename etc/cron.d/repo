@@ -1,6 +1,3 @@
-#awstat
-*/15 * * * * root /usr/local/awstats/wwwroot/cgi-bin/awstats.pl -update -config=repo.opensciencegrid.org >> /usr/local/awstats/log.txt
-
 #update all .mash files, once daily
 @reboot    root /usr/bin/update_mashfiles.sh > /var/log/repo/update_mashfiles.log 2> /var/log/repo/update_mashfiles.err
 50 7 * * * root /usr/bin/update_mashfiles.sh > /var/log/repo/update_mashfiles.log 2> /var/log/repo/update_mashfiles.err
@@ -10,6 +7,3 @@
 
 #update mirror
 29-59/30 * * * *  root /usr/bin/update_mirror.py > /var/log/repo/update_mirror.log 2> /var/log/repo/update_mirror.err
-
-#service monitor
-*/15 * * * * root /opt/service-monitor/repo/test.sh
