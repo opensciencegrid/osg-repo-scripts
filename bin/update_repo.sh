@@ -25,6 +25,17 @@ case $TAG in
           * ) usage ;;
 esac
 
+# Prevent simultaneous mash runs from colliding
+# Causes errors when another instance opens an incompletely downloaded RPM
+# Wait up to 5 minutes for the other task to complete
+# http://mywiki.wooledge.org/BashFAQ/045
+lockfile="/tmp/lock.update_repo-$SERIES.$DVER"
+exec 99>$lockfile
+if ! flock --wait 300 99  ; then
+         printf 'another instance is running\n';
+         exit 1
+fi
+
 release_path="/usr/local/repo/osg/$SERIES/$DVER/$REPO"
 working_path="/usr/local/repo.working/osg/$SERIES/$DVER/$REPO"
 previous_path="/usr/local/repo.previous/osg/$SERIES/$DVER/$REPO"
