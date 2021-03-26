@@ -9,6 +9,7 @@ RUN \
     && yum install -y --enablerepo=devops \
       repo-update-cadist \
     && yum install -y \
+      lftp \
       parallel \
       httpd \
       repoview \
@@ -18,7 +19,7 @@ RUN \
 
 # supervisord and cron configs
 COPY docker/supervisor-*.conf /etc/supervisord.d/
-COPY docker/*.cron /etc/cron.d
+COPY docker/*.cron /etc/cron.d/
 
 # OSG scripts for repo maintenance
 COPY bin/* /usr/bin/
