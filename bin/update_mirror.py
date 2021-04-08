@@ -76,7 +76,7 @@ def test(hosts,tag,arch):
         mdurl=url+"/repodata/repomd.xml"
         log("checking: "+mdurl)
         try:
-            response = urllib2.urlopen(mdurl)
+            response = urllib2.urlopen(mdurl, timeout=10)
             if response.code != 200:
                 log("\tbad(non 200) response.code:"+response.code)
             else:
@@ -92,6 +92,10 @@ def test(hosts,tag,arch):
         except urllib2.HTTPError,e:
             #no such repo on this host..
             log("\tURL caught while processing url:"+url+" "+str(e))
+        except urllib2.URLError,e:
+            # Error contacting the host. Remove it from the mirrorhosts for this run.
+            log("\tExcluding host due to connection error for url:"+url+" "+str(e))
+            mirrorhosts.remove(host)
         except Exception, e:
             log("\tException caught while processing url:"+url+" "+str(e))
 
