@@ -28,6 +28,7 @@ esac
 # Prevent simultaneous mash runs from colliding
 # Causes errors when another instance opens an incompletely downloaded RPM
 # Wait up to 5 minutes for the other task to complete
+mkdir -p /var/lock/repo
 lockfile=/var/lock/repo/lock.update_repo-$SERIES.$DVER
 exec 99>$lockfile
 if ! flock --wait 300 99  ; then
