@@ -28,11 +28,10 @@ esac
 # Prevent simultaneous mash runs from colliding
 # Causes errors when another instance opens an incompletely downloaded RPM
 # Wait up to 5 minutes for the other task to complete
-# http://mywiki.wooledge.org/BashFAQ/045
-lockfile="/tmp/lock.update_repo-$SERIES.$DVER"
+lockfile=/var/lock/repo/lock.update_repo-$SERIES.$DVER
 exec 99>$lockfile
 if ! flock --wait 300 99  ; then
-         printf 'another instance is running\n';
+         echo "another instance is running" >&2
          exit 1
 fi
 
@@ -64,4 +63,3 @@ if [[ $REPO = release && $SERIES != *-upcoming ]]; then
                 echo "didn't find the osg-release rpm under $SERIES/$DVER/$REPO"
         fi
 fi
-
