@@ -1,0 +1,2 @@
+1 * * * * root flock -n /var/lock/repo-tarball-client /usr/bin/update_tarball-install.sh
+@reboot   root flock -n /var/lock/repo-tarball-client /usr/bin/update_tarball-install.sh

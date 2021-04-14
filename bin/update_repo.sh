@@ -25,6 +25,17 @@ case $TAG in
           * ) usage ;;
 esac
 
+# Prevent simultaneous mash runs from colliding
+# Causes errors when another instance opens an incompletely downloaded RPM
+# Wait up to 5 minutes for the other task to complete
+mkdir -p /var/lock/repo
+lockfile=/var/lock/repo/lock.update_repo-$SERIES.$DVER
+exec 99>$lockfile
+if ! flock --wait 300 99  ; then
+         echo "another instance is running" >&2
+         exit 1
+fi
+
 release_path="/usr/local/repo/osg/$SERIES/$DVER/$REPO"
 working_path="/usr/local/repo.working/osg/$SERIES/$DVER/$REPO"
 previous_path="/usr/local/repo.previous/osg/$SERIES/$DVER/$REPO"
@@ -53,4 +64,3 @@ if [[ $REPO = release && $SERIES != *-upcoming ]]; then
                 echo "didn't find the osg-release rpm under $SERIES/$DVER/$REPO"
         fi
 fi
-

@@ -1,0 +1,15 @@
+version: "3.3"
+
+services:
+
+  repo:
+    #image: opensciencegrid/repo
+    build: .
+    volumes:
+      - repo-data:/data
+    ports:
+      - "8080:80"
+
+volumes:
+  repo-data:
+
