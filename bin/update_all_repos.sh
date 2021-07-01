@@ -51,3 +51,7 @@ done
 datemsg "Finished updating all mash repos."
 echo
 
+# SOFTWARE-4420, SOFTWARE-4689: temporary upcoming symlink to 3.5-upcoming
+uplink=/usr/local/repo/osg/upcoming
+[[ -L $uplink ]] || ln -s 3.5-upcoming $uplink
+
