@@ -55,9 +55,9 @@ else
   osg_tagpat="osg-($osg_seriespat)-el[5-9]-($osg_repopat)"
   devops_tagpat='devops-el[7-9]-(itb|production)'
 
-  koji --config=/etc/mash_koji_config list-tags 'osg-*-*-*' \
-                                                'devops-*-*'          \
-  | egrep -xe "$osg_tagpat" -e "$devops_tagpat"      \
+  koji --config=/etc/mash_koji_config list-tags 'osg-*-*-*'  \
+                                                'devops-*-*' \
+  | egrep -xe "$osg_tagpat" -e "$devops_tagpat"              \
   | fgrep -vxf $OSGTAGS.exclude > $OSGTAGS.new || :
 
   if [[ -s $OSGTAGS.new ]]; then
