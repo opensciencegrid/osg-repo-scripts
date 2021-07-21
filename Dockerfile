@@ -1,4 +1,4 @@
-FROM opensciencegrid/software-base:fresh
+FROM opensciencegrid/software-base:release
 
 # Install dependencies
 # Note that OSG builds of mash and createrepo are necessary
