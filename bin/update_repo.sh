@@ -20,8 +20,7 @@ case $TAG in
   osg-3.*-upcoming-*-* ) IFS='-' read osg SERIES upcoming DVER REPO <<< "$TAG"
                          SERIES+=-$upcoming ;;
   osg-*-*-* ) IFS='-' read osg SERIES DVER REPO <<< "$TAG" ;;
-  devops-*-*| \
-  goc-*-*   ) IFS='-' read SERIES DVER REPO <<< "$TAG" ;;
+  devops-*-*) IFS='-' read SERIES DVER REPO <<< "$TAG" ;;
           * ) usage ;;
 esac
 
