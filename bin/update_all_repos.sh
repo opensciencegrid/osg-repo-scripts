@@ -55,3 +55,5 @@ echo
 uplink=/usr/local/repo/osg/upcoming
 [[ -L $uplink ]] || ln -s 3.5-upcoming $uplink
 
+# Update timestamp showing last run
+echo $(date) > /usr/local/repo/osg/timestamp.txt
