@@ -5,21 +5,15 @@ FROM opensciencegrid/software-base:release
 RUN \
     yum update -y \
     && yum install -y \
-                  --disablerepo=osg-upcoming \
-                  --disablerepo=osg-upcoming-testing \
-                  --disablerepo=osg-upcoming-development \
+                  --disablerepo='osg-upcoming*' \
                   --enablerepo=devops-itb \
                   mash \
     && yum install -y
-                  --disablerepo=osg-upcoming \
-                  --disablerepo=osg-upcoming-testing \
-                  --disablerepo=osg-upcoming-development \
+                  --disablerepo='osg-upcoming*' \
                   --enablerepo=devops \
                   repo-update-cadist \
     && yum install -y \
-                  --disablerepo=osg-upcoming \
-                  --disablerepo=osg-upcoming-testing \
-                  --disablerepo=osg-upcoming-development \
+                  --disablerepo='osg-upcoming*' \
                   lftp \
                   parallel \
                   httpd \
