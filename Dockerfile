@@ -4,17 +4,28 @@ FROM opensciencegrid/software-base:release
 # Note that OSG builds of mash and createrepo are necessary
 RUN \
     yum update -y \
-    && yum install -y --enablerepo=devops-itb \
-      mash \
-    && yum install -y --enablerepo=devops \
-      repo-update-cadist \
     && yum install -y \
-      lftp \
-      parallel \
-      httpd \
-      repoview \
-      rsync \
-      which \
+                  --disablerepo=osg-upcoming \
+                  --disablerepo=osg-upcoming-testing \
+                  --disablerepo=osg-upcoming-development \
+                  --enablerepo=devops-itb \
+                  mash \
+    && yum install -y
+                  --disablerepo=osg-upcoming \
+                  --disablerepo=osg-upcoming-testing \
+                  --disablerepo=osg-upcoming-development \
+                  --enablerepo=devops \
+                  repo-update-cadist \
+    && yum install -y \
+                  --disablerepo=osg-upcoming \
+                  --disablerepo=osg-upcoming-testing \
+                  --disablerepo=osg-upcoming-development \
+                  lftp \
+                  parallel \
+                  httpd \
+                  repoview \
+                  rsync \
+                  which \
     && yum clean all && rm -rf /var/cache/yum/*
 
 # supervisord and cron configs
