@@ -1,4 +1,4 @@
-FROM opensciencegrid/software-base:release
+FROM opensciencegrid/software-base:3.6-el7-release
 
 # Install dependencies
 # Note that OSG builds of mash and createrepo are necessary
