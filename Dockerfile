@@ -8,7 +8,7 @@ RUN \
                   --disablerepo='osg-upcoming*' \
                   --enablerepo=devops-itb \
                   mash \
-    && yum install -y
+    && yum install -y \
                   --disablerepo='osg-upcoming*' \
                   --enablerepo=devops \
                   repo-update-cadist \
