@@ -19,7 +19,6 @@ RUN \
                   httpd \
                   repoview \
                   rsync \
-                  which \
     && yum clean all && rm -rf /var/cache/yum/*
 
 # supervisord and cron configs
