@@ -42,7 +42,7 @@ if ! flock -n 299; then
 fi
 
 datemsg "Updating all mash repos..."
-for tag in $(< $OSGTAGS); do
+for tag in $(tac $OSGTAGS); do
   datemsg "Running update_repo.sh for tag $tag ..."
   ./update_repo.sh "$tag" > "$LOGDIR/update_repo.$tag.log" \
                          2> "$LOGDIR/update_repo.$tag.err" \
