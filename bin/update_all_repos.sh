@@ -41,12 +41,15 @@ if ! flock -n 299; then
   exit 1
 fi
 
+failed=0
 datemsg "Updating all mash repos..."
 for tag in $(tac $OSGTAGS); do
   datemsg "Running update_repo.sh for tag $tag ..."
-  ./update_repo.sh "$tag" > "$LOGDIR/update_repo.$tag.log" \
-                         2> "$LOGDIR/update_repo.$tag.err" \
-  || datemsg "mash failed for $tag - please see error log" >&2
+  if ! ./update_repo.sh "$tag" > "$LOGDIR/update_repo.$tag.log" \
+                              2> "$LOGDIR/update_repo.$tag.err"; then
+    datemsg "mash failed for $tag - please see error log" >&2
+    failed=1
+  fi
 done
 datemsg "Finished updating all mash repos."
 echo
@@ -55,5 +58,10 @@ echo
 uplink=/usr/local/repo/osg/upcoming
 [[ -L $uplink ]] || ln -s 3.5-upcoming $uplink
 
-# Update timestamp showing last run
-echo $(date) > /usr/local/repo/osg/timestamp.txt
+if [[ $failed = 0 ]]; then
+  # Update timestamp showing last successful run
+  echo $(date) > /usr/local/repo/osg/timestamp.txt
+fi
+
+exit $failed
+
