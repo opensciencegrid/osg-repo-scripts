@@ -24,6 +24,7 @@ RUN \
 # supervisord and cron configs
 COPY docker/supervisor-*.conf /etc/supervisord.d/
 COPY docker/*.cron /etc/cron.d/
+COPY 99-tail-cron-logs.sh /etc/osg/image-init.d/
 
 # OSG scripts for repo maintenance
 COPY bin/* /usr/bin/

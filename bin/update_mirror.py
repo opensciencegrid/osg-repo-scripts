@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import urllib2
 import time
 import sys
@@ -10,7 +11,7 @@ import fcntl
 import errno
 
 def log(log):
-    print time.strftime("%a %m/%d/%y %H:%M:%S %Z: ", time.localtime()),log
+    print("[%s]"%sys.argv[0], time.strftime("%a %m/%d/%y %H:%M:%S %Z: ", time.localtime()), log)
 
 def lock(path):
     dir = os.path.dirname(path)
