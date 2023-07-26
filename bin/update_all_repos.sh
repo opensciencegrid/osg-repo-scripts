@@ -12,6 +12,10 @@ datemsg () {
   echo "$(date):" "$@"
 }
 
+prepend_tag() {
+  while read line; do echo "${1}${line}"; done;
+}
+
 # cd /usr/local
 cd "$(dirname "$0")"
 LOGDIR=/var/log/repo
@@ -45,8 +49,7 @@ failed=0
 datemsg "Updating all mash repos..."
 for tag in $(tac $OSGTAGS); do
   datemsg "Running update_repo.sh for tag $tag ..."
-  if ! ./update_repo.sh "$tag" > "$LOGDIR/update_repo.$tag.log" \
-                              2> "$LOGDIR/update_repo.$tag.err"; then
+  if ! ./update_repo.sh "$tag" 2>&1 | prepend_tag "[update_repo.sh $tag] "; then
     datemsg "mash failed for $tag - please see error log" >&2
     failed=1
   fi
