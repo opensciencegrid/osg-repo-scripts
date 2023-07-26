@@ -17,8 +17,6 @@ usage () {
 TAG=$1
 
 case $TAG in
-  osg-3.*-upcoming-*-* ) IFS='-' read osg SERIES upcoming DVER REPO <<< "$TAG"
-                         SERIES+=-$upcoming ;;
   osg-*-*-*-* ) IFS='-' read osg SERIES branch DVER REPO <<< "$TAG"
                          SERIES+=-$branch ;;
   osg-*-*-* ) IFS='-' read osg SERIES DVER REPO <<< "$TAG" ;;

@@ -9,6 +9,7 @@ import shutil
 import socket
 import fcntl
 import errno
+import re
 
 def log(log):
     print("[%s]"%sys.argv[0], time.strftime("%a %m/%d/%y %H:%M:%S %Z: ", time.localtime()), log)
@@ -58,9 +59,9 @@ if socket.gethostname() == "repo-itb.opensciencegrid.org":
     hostname="repo-itb.opensciencegrid.org"
 
 def tagsplit(tag):
-    if 'upcoming' in tag and tag.startswith("osg-3."):
-        series,_,dver,repo = tag.split('-')[-4:]
-        series += "-upcoming"
+    if re.match(r'osg-[0-9.]*-[a-z]*-el[0-9]+-[a-z]*', tag):
+        series,branch,dver,repo = tag.split('-')[-4:]
+        series += "-" + branch
     else:
         series,dver,repo = tag.split('-')[-3:]
     return series,dver,repo
