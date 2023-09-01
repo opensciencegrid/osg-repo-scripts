@@ -5,7 +5,7 @@ usage () {
   echo "Usage: $(basename "$0") TAG"
   echo "Where:"
   echo "  TAG is osg-SERIES-DVER-REPO or devops-DVER-REPO"
-  echo "  SERIES is: 3.X (3.5, 3.6, etc), or 3.X-upcoming"
+  echo "  SERIES is: 3.X (3.5, 3.6, etc), or 2X (23, etc.)"
   echo "  DVER is: el7, el8, etc."
   echo "  REPO is: contrib, development, testing, or release for osg"
   echo "       or: itb or production for devops (formerly goc)"
@@ -35,16 +35,33 @@ if ! flock --wait 300 99  ; then
          exit 1
 fi
 
+arch="x86_64"
 release_path="/usr/local/repo/osg/$SERIES/$DVER/$REPO"
 working_path="/usr/local/repo.working/osg/$SERIES/$DVER/$REPO"
 previous_path="/usr/local/repo.previous/osg/$SERIES/$DVER/$REPO"
 reponame=$TAG
+repo_working_path="$working_path/$reponame/$arch"
+repo_working_srpm_path="$working_path/$reponame/source/SRPMS"
 
 mkdir -p "$release_path" "$working_path" "$previous_path"
 mash "$reponame" -o "$working_path" -p "$release_path"
 if [ "$?" -ne "0" ]; then
         echo "mash failed - please see error log" >&2
         exit 1
+fi
+
+# Copy relevant htcondor rpms to the working directory, if any
+if pull_condor_rpms.sh $TAG $repo_working_path '' ; then
+        # if htcondor rpms were copied, we need to regenerate the repo files
+        createrepo --update $repo_working_path
+        repoview $repo_working_path
+fi
+
+# Copy relevant htcondor srpms to the working directory, if any
+if pull_condor_rpms.sh $TAG $repo_working_srpm_path 'SRPMS/' ; then
+        # if htcondor srpms were copied, we need to regenerate the repo files
+        createrepo --update $repo_working_srpm_path
+        repoview $repo_working_srpm_path
 fi
 
 rm -rf "$previous_path"
