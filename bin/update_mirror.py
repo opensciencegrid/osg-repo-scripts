@@ -62,6 +62,7 @@ def tagsplit(tag):
     if re.match(r'osg-[0-9.]*-[a-z]*-el[0-9]+-[a-z]*', tag):
         series,branch,dver,repo = tag.split('-')[-4:]
         series += "-" + branch
+    # matches osg-2X-elY-empty and contrib, but not the equivalent 3.X tags
     elif re.match(r'osg-[0-9][^.][0-9]*-el[0-9]+-(contrib|empty)', tag):
         series,dver,repo = tag.split('-')[-3:]
         series += "-" + repo

@@ -28,6 +28,7 @@ TAG=$1
 case $TAG in
   osg-*-*-*-* ) IFS='-' read osg SERIES branch DVER REPO <<< "$TAG"
                          SERIES+=-$branch ;;
+  # matches osg-2X-elY-empty and contrib, but not the equivalent 3.X tags
   osg-[1-9][^.]*-*-empty|osg-[1-9][^.]*-*-contrib )
                 IFS='-' read osg SERIES DVER REPO <<< "$TAG"
                 SERIES+=-$REPO 
