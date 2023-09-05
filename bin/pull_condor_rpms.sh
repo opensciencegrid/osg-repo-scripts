@@ -1,13 +1,10 @@
 #!/bin/bash
-# only need to fetch a subset of packages from condor repos
-CONDOR_PKGS=(condor htcondor-ce minicondor python3-condor)
-
 RSYNC_ROOT="rsync://rsync.cs.wisc.edu/htcondor"
-TMP_PKG_LIST=/tmp/rsync_list.txt
 
 TAG=$1
 REPO_DIR=$2
 SOURCE_SET=$3
+
 usage () {
   echo "Usage: $(basename "$0") TAG REPO_DIR SOURCE_SET"
   echo "Where:"
@@ -36,7 +33,7 @@ repo_not_supported() {
     exit 1
 }
 
-[[ $# -eq 2 ]] || usage
+[[ $# -eq 3 ]] || usage
 
 # read series, branch, dver, and repo from the osg tag
 case $TAG in
@@ -49,8 +46,11 @@ esac
 # branch "upcoming" corresponds to SERIES.x in htcondor, "main" corresponds to SERIES.0
 # others do not have a corresponding series
 case $BRANCH in
-    main ) CONDOR_SERIES=$SERIES.0 ;;
-    upcoming ) CONDOR_SERIES=$SERIES.x ;;
+    main ) 
+        CONDOR_SERIES=$SERIES.0 
+        TESTING_CONDOR_REPO=release ;;
+    upcoming ) CONDOR_SERIES=$SERIES.x
+        TESTING_CONDOR_REPO=update ;;
     * ) branch_not_supported $BRANCH ;;
 esac
 
@@ -59,31 +59,15 @@ esac
 # testing -> release, rc, update
 # development -> daily
 case $REPO in
-    release ) CONDOR_REPOS=(release)
-              LATEST_ONLY=0 ;;
-    testing ) CONDOR_REPOS=(release rc update)
-              LATEST_ONLY=1 ;;
-    development ) CONDOR_REPOS=(daily)
-              LATEST_ONLY=1 ;;
+    release ) CONDOR_REPO=release ;;
+    testing ) CONDOR_REPO=$TESTING_CONDOR_REPO ;;
+    development ) CONDOR_REPO=daily ;;
     * ) repo_not_supported $REPO ;;
 esac
 
-for condor_pkg in ${CONDOR_PKGS[@]}; do
-    echo '' > $TMP_PKG_LIST
-    # For each package and osg repo, get every build available for that package from every applicable condor repo
-    for condor_repo in ${CONDOR_REPOS[@]}; do
-        RSYNC_URL="$RSYNC_ROOT/$CONDOR_SERIES/$DVER/x86_64/$condor_repo/$SOURCE_SET$condor_pkg-[0-9]*.rpm"
-        echo "rsyncing $RSYNC_URL to $REPO_DIR"
-        if ! rsync --list-only $RSYNC_URL | awk '{print "'$condor_repo/$SOURCE_SET'"$5}' >> $TMP_PKG_LIST ; then
-            echo "Warning: No packages found for $RSYNC_URL. Skipping"
-        fi
-    done
-
-    # for development and testing, we only need to rsync the latest version of the package from across every repo
-    if [ "$LATEST_ONLY" -eq "1" ]; then
-        # overwrite the package list in-place
-        (rm -f $TMP_PKG_LIST && sort -r | head -1 > $TMP_PKG_LIST) < $TMP_PKG_LIST
-    fi
-
-    rsync --files-from=$TMP_PKG_LIST --no-R "$RSYNC_ROOT/$CONDOR_SERIES/$DVER/x86_64/" $REPO_DIR
-done
+# get every build available for that package from every applicable condor repo
+RSYNC_URL="$RSYNC_ROOT/$CONDOR_SERIES/$DVER/x86_64/$CONDOR_REPO/$SOURCE_SET*.rpm"
+echo "rsyncing $RSYNC_URL to $REPO_DIR"
+if ! rsync $RSYNC_URL $REPO_DIR ; then
+    echo "Warning: No packages found for $RSYNC_URL. Skipping"
+fi
