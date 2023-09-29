@@ -1,8 +1,8 @@
 [koji]
 ;configuration for koji cli tool
 ;url of XMLRPC server
-server = http://koji.chtc.wisc.edu/kojihub
+server = https://koji.osg-htc.org/kojihub
 ;url of web interface
-weburl = http://koji.chtc.wisc.edu/koji
+weburl = https://koji.osg-htc.org/koji
 ;path to the koji top directory
 topdir = /mnt/koji
