@@ -58,10 +58,12 @@ case $SERIES in
       *) auto_key=824b8603; developer_key=824b8603; STRICT_KEYS=False ;;
 esac
 
-case $REPO in
-    development|empty) KEYS=$auto_key ;;
-    *)                 KEYS=$developer_key ;;
-esac
+# in OSG 23+, "empty" makes it into the "$branch"; in previous, it's part of "$REPO"
+if [[ $REPO == development || $REPO == empty || $branch == empty ]]; then
+    KEYS=$auto_key
+else
+    KEYS=$developer_key
+fi
 
 case $DVER in
   el5|el6 ) ARCHES="i386 x86_64" ;;
