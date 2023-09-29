@@ -21,8 +21,15 @@ case $# in
 esac
 
 
-upper () { python -c 'import sys; print sys.argv[1].upper()' "$*" ; }
-title () { python -c 'import sys; print sys.argv[1].title()' "$*" ; }
+if command -v python3 &>/dev/null; then
+    PYTHON=python3
+else
+    PYTHON=python
+fi
+
+
+upper () { $PYTHON -c 'import sys; print( sys.argv[1].upper() )' "$*" ; }
+title () { $PYTHON -c 'import sys; print( sys.argv[1].title() )' "$*" ; }
 
 TAG=$1
 case $TAG in
