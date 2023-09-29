@@ -21,8 +21,15 @@ case $# in
 esac
 
 
-upper () { python -c 'import sys; print sys.argv[1].upper()' "$*" ; }
-title () { python -c 'import sys; print sys.argv[1].title()' "$*" ; }
+if command -v python3 &>/dev/null; then
+    PYTHON=python3
+else
+    PYTHON=python
+fi
+
+
+upper () { $PYTHON -c 'import sys; print( sys.argv[1].upper() )' "$*" ; }
+title () { $PYTHON -c 'import sys; print( sys.argv[1].title() )' "$*" ; }
 
 TAG=$1
 case $TAG in
@@ -46,6 +53,16 @@ case $REPO in
         * ) LATEST="" ;;
 esac
 
+case $SERIES in
+    23*) auto_key=4d4384d0; developer_key=92897c00; STRICT_KEYS=True  ;;
+      *) auto_key=824b8603; developer_key=824b8603; STRICT_KEYS=False ;;
+esac
+
+case $REPO in
+    development|empty) KEYS=$auto_key ;;
+    *)                 KEYS=$developer_key ;;
+esac
+
 case $DVER in
   el5|el6 ) ARCHES="i386 x86_64" ;;
         * ) ARCHES="x86_64" ;;
@@ -62,5 +79,7 @@ sed "
   s/{KOJI_TAG}/$TAG/
   s/{ARCHES}/$ARCHES/
   s/{LATEST}/$LATEST/
+  s/{KEYS}/$KEYS/
+  s/{STRICT_KEYS}/$STRICT_KEYS/
 " "$TEMPLATEDIR"/mash.template > "$DESTDIR/$TAG.mash"
 
