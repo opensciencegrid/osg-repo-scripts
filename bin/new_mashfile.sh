@@ -72,8 +72,12 @@ case $SERIES in
          ;;
 esac
 
-# in OSG 23+, "empty" makes it into the "$branch"; in previous, it's part of "$REPO"
-if [[ $REPO == development || $REPO == empty || $branch == empty ]]; then
+# in OSG 23+, "contrib" and "empty" make it into the "$branch"; in previous, it's part of "$REPO"
+if [[ $REPO == development || \
+      $REPO == empty || \
+      $REPO == contrib || \
+      $branch == empty || \
+      $branch == contrib ]]; then
     KEYS="$auto_key $developer_key"
 else
     KEYS=$developer_key
