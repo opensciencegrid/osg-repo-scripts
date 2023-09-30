@@ -54,19 +54,19 @@ case $REPO in
 esac
 
 case $SERIES in
-    23*) auto_key=4d4384d0
-         developer_key=92897c00
+    23*) auto_key=4d4384d0       # OSG-23-auto
+         developer_key=92897c00  # OSG-23-developer
          STRICT_KEYS=True
          ;;
     3.6) if [[ $DVER == el9 ]]; then
-             auto_key=1887c61a
+             auto_key=1887c61a   # OSG-4
          else
-             auto_key=96d2b90f
+             auto_key=96d2b90f   # OSG-2
          fi
          developer_key=$auto_key
          STRICT_KEYS=False
          ;;
-      *) auto_key=824b8603
+      *) auto_key=824b8603       # OSG
          developer_key=$auto_key
          STRICT_KEYS=False
          ;;
@@ -74,7 +74,7 @@ esac
 
 # in OSG 23+, "empty" makes it into the "$branch"; in previous, it's part of "$REPO"
 if [[ $REPO == development || $REPO == empty || $branch == empty ]]; then
-    KEYS=$auto_key
+    KEYS="$auto_key $developer_key"
 else
     KEYS=$developer_key
 fi
