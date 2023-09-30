@@ -54,13 +54,21 @@ case $REPO in
 esac
 
 case $SERIES in
-    23*) auto_key=4d4384d0; developer_key=92897c00; STRICT_KEYS=True  ;;
-      *) if [[ $DVER == el9 ]]; then
+    23*) auto_key=4d4384d0
+         developer_key=92897c00
+         STRICT_KEYS=True
+         ;;
+    3.6) if [[ $DVER == el9 ]]; then
              auto_key=1887c61a
          else
-             auto_key=824b8603
+             auto_key=96d2b90f
          fi
-         developer_key=$auto_key; STRICT_KEYS=false
+         developer_key=$auto_key
+         STRICT_KEYS=False
+         ;;
+      *) auto_key=824b8603
+         developer_key=$auto_key
+         STRICT_KEYS=False
          ;;
 esac
 
