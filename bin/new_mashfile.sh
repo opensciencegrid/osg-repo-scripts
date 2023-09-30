@@ -55,7 +55,13 @@ esac
 
 case $SERIES in
     23*) auto_key=4d4384d0; developer_key=92897c00; STRICT_KEYS=True  ;;
-      *) auto_key=824b8603; developer_key=824b8603; STRICT_KEYS=False ;;
+      *) if [[ $DVER == el9 ]]; then
+             auto_key=1887c61a
+         else
+             auto_key=824b8603
+         fi
+         developer_key=$auto_key; STRICT_KEYS=false
+         ;;
 esac
 
 # in OSG 23+, "empty" makes it into the "$branch"; in previous, it's part of "$REPO"
