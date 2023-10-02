@@ -74,10 +74,8 @@ esac
 
 # in OSG 23+, "contrib" and "empty" make it into the "$branch"; in previous, it's part of "$REPO"
 if [[ $REPO == development || \
-      $REPO == empty || \
-      $REPO == contrib || \
-      $branch == empty || \
-      $branch == contrib ]]; then
+      $TAG  == *contrib* || \
+      $TAG  == *empty* ]]; then
     KEYS="$auto_key $developer_key"
 else
     KEYS=$developer_key
