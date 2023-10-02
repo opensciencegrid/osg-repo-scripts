@@ -1,5 +1,5 @@
 #!/bin/bash
-
+OSGTAGS=/etc/osg-koji-tags/osg-tags
 
 usage () {
   echo "Usage: $(basename "$0") TAG"
@@ -47,6 +47,11 @@ previous_path="/usr/local/repo.previous/osg/$SERIES/$DVER/$REPO"
 reponame=$TAG
 repo_working_path="$working_path/$reponame/$arch"
 repo_working_srpm_path="$working_path/$reponame/source/SRPMS"
+
+if test -d $release_path && grep -q $TAG $OSGTAGS.create-only ; then
+  echo "Tag $TAG is create-only and already exists. Skipping"
+  exit 0
+fi
 
 mkdir -p "$release_path" "$working_path" "$previous_path"
 mash "$reponame" -o "$working_path" -p "$release_path"
