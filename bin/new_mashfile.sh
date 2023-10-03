@@ -72,9 +72,8 @@ case $SERIES in
          ;;
 esac
 
-# In OSG 23+, we want contrib, empty, testing, and release branches
-# only signed with the developer key and development signed with the
-# auto key. For all previous release series, dev == auto.
+# In OSG 23+, we have a separate signing key for development versus
+# promoted packages.
 if [[ $REPO == development ]]; then
     KEYS=$auto_key
 else
