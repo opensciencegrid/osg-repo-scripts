@@ -72,10 +72,9 @@ case $SERIES in
          ;;
 esac
 
-# in OSG 23+, "contrib" and "empty" make it into the "$branch"; in previous, it's part of "$REPO"
-if [[ $REPO == development || \
-      $TAG  == *contrib* || \
-      $TAG  == *empty* ]]; then
+# in OSG 23+, we want contrib, empty, testing, and release branches
+# only signed with the developer key
+if [[ $REPO == development ]]; then
     if [[ $developer_key == "$auto_key" ]]; then
         KEYS=$auto_key
     else
