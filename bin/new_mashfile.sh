@@ -76,7 +76,11 @@ esac
 if [[ $REPO == development || \
       $TAG  == *contrib* || \
       $TAG  == *empty* ]]; then
-    KEYS="$auto_key $developer_key"
+    if [[ $developer_key == "$auto_key" ]]; then
+        KEYS=$auto_key
+    else
+        KEYS="$auto_key $developer_key"
+    fi
 else
     KEYS=$developer_key
 fi
@@ -88,7 +92,7 @@ esac
 
 TEMPLATEDIR=/usr/share/repo
 
-KEYSDIR=$(tr -c '0-9A-Za-z' '_' <<<"$KEYS")
+KEYSDIR=$(echo -n "$KEYS" | tr -c '0-9A-Za-z' '_')
 
 sed "
   s/{YUMREPO}/$TAG/
