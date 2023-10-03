@@ -88,7 +88,7 @@ esac
 
 TEMPLATEDIR=/usr/share/repo
 
-KEYSDIR=$(tr -c '0-9A-Za-z' '_')
+KEYSDIR=$(tr -c '0-9A-Za-z' '_' <<<"$KEYS")
 
 sed "
   s/{YUMREPO}/$TAG/
