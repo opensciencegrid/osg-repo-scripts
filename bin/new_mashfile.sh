@@ -75,7 +75,9 @@ esac
 # in OSG 23+, we want contrib, empty, testing, and release branches
 # only signed with the developer key
 if [[ $REPO == development ]]; then
-    if [[ $developer_key == "$auto_key" ]]; then
+    # Only use the auto key for OSG 23 development
+    if [[ $developer_key == "$auto_key" ]] \
+       || [[ $SERIES == "23" ]]; then
         KEYS=$auto_key
     else
         KEYS="$auto_key $developer_key"
