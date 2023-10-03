@@ -88,6 +88,8 @@ esac
 
 TEMPLATEDIR=/usr/share/repo
 
+KEYSDIR=$(tr -c '0-9A-Za-z' '_' <<<"$KEYS")
+
 sed "
   s/{YUMREPO}/$TAG/
   s/{REPO}/$REPO/
@@ -98,6 +100,7 @@ sed "
   s/{ARCHES}/$ARCHES/
   s/{LATEST}/$LATEST/
   s/{KEYS}/$KEYS/
+  s/{KEYSDIR}/$KEYSDIR/
   s/{STRICT_KEYS}/$STRICT_KEYS/
 " "$TEMPLATEDIR"/mash.template > "$DESTDIR/$TAG.mash"
 
