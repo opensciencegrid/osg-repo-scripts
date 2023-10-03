@@ -11,7 +11,6 @@ DEST=/usr/local/repo/tarball-install
   --exclude-glob=osg-afs-client-*         `# Skip osg-afs-client`    \
   --exclude-glob=*tarballs.rescue         `# Ignore rescue tarballs` \
   --exclude-glob=osg-wn-client-latest.*   `# Ignore latest symlinks` \
-  --exclude=3.2                           `# Exclude old releases`   \
   https://vdt.cs.wisc.edu/tarball-client/                            \
   $DEST
 
