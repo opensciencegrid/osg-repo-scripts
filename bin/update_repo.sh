@@ -51,12 +51,10 @@ repo_working_srpm_path="$working_path/$reponame/source/SRPMS"
 mkdir -p "$release_path" "$working_path" "$previous_path"
 mash "$reponame" -o "$working_path" -p "$release_path"
 
-# FIXME: temporarily let mash fail so that we can see all the warnings
-# and fix things live
-# if [ "$?" -ne "0" ]; then
-#         echo "mash failed - please see error log" >&2
-#         exit 1
-# fi
+if [ "$?" -ne "0" ]; then
+        echo "mash failed - please see error log" >&2
+        exit 1
+fi
 
 # Copy relevant htcondor rpms to the working directory, if any
 if pull_condor_rpms.sh $TAG $repo_working_path '' ; then
