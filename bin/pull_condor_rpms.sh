@@ -70,6 +70,6 @@ esac
 # get every build available for that package from every applicable condor repo
 RSYNC_URL="$RSYNC_ROOT/$CONDOR_SERIES/$DVER/x86_64/$CONDOR_REPO/$SOURCE_SET*.rpm"
 echo "rsyncing $RSYNC_URL to $NEW_REPO_DIR"
-if ! rsync $RSYNC_URL $NEW_REPO_DIR --link-dest $CURRENT_REPO_DIR; then
+if ! rsync --times $RSYNC_URL $NEW_REPO_DIR --link-dest $CURRENT_REPO_DIR; then
     echo "Warning: No packages found for $RSYNC_URL. Skipping"
 fi
