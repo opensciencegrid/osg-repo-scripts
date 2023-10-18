@@ -2,18 +2,20 @@
 RSYNC_ROOT="rsync://rsync.cs.wisc.edu/htcondor"
 
 TAG=$1
-REPO_DIR=$2
-SOURCE_SET=$3
+NEW_REPO_DIR=$2
+CURRENT_REPO_DIR=$3
+SOURCE_SET=$4
 
 usage () {
-  echo "Usage: $(basename "$0") TAG REPO_DIR SOURCE_SET"
+  echo "Usage: $(basename "$0") TAG NEW_REPO_DIR CURRENT_REPO_DIR SOURCE_SET"
   echo "Where:"
   echo "  TAG is osg-SERIES-BRANCH-DVER-REPO"
   echo "  SERIES is: 23, 24, etc."
   echo "  DVER is: el8, el9, etc."
   echo "  BRANCH is: main or upcoming"
   echo "  REPO is: development, testing, or release"
-  echo "  REPO_DIR is the directory to output condor RPMs into"
+  echo "  NEW_REPO_DIR is the directory to output condor RPMs into"
+  echo "  CURRENT_REPO_DIR is the directory that may contain condor RPMs from the most recent successful run"
   echo "  SOURCE_SET is '' for rpms and 'SRPMS/' for srpms"
   exit 1
 }
@@ -33,7 +35,7 @@ repo_not_supported() {
     exit 1
 }
 
-[[ $# -eq 3 ]] || usage
+[[ $# -eq 4 ]] || usage
 
 # read series, branch, dver, and repo from the osg tag
 case $TAG in
@@ -67,7 +69,7 @@ esac
 
 # get every build available for that package from every applicable condor repo
 RSYNC_URL="$RSYNC_ROOT/$CONDOR_SERIES/$DVER/x86_64/$CONDOR_REPO/$SOURCE_SET*.rpm"
-echo "rsyncing $RSYNC_URL to $REPO_DIR"
-if ! rsync $RSYNC_URL $REPO_DIR ; then
+echo "rsyncing $RSYNC_URL to $NEW_REPO_DIR"
+if ! rsync --times $RSYNC_URL $NEW_REPO_DIR --link-dest $CURRENT_REPO_DIR; then
     echo "Warning: No packages found for $RSYNC_URL. Skipping"
 fi

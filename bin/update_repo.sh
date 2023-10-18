@@ -46,7 +46,9 @@ working_path="/usr/local/repo.working/osg/$SERIES/$DVER/$REPO"
 previous_path="/usr/local/repo.previous/osg/$SERIES/$DVER/$REPO"
 reponame=$TAG
 repo_working_path="$working_path/$reponame/$arch"
+repo_release_path="$release_path/$arch"
 repo_working_srpm_path="$working_path/$reponame/source/SRPMS"
+repo_release_srpm_path="$release_path/source/SRPMS"
 
 if test -d $release_path && grep -q $TAG $OSGTAGS.create-only ; then
   echo "Tag $TAG is create-only and already exists. Skipping"
@@ -62,14 +64,14 @@ if [ "$?" -ne "0" ]; then
 fi
 
 # Copy relevant htcondor rpms to the working directory, if any
-if pull_condor_rpms.sh $TAG $repo_working_path '' ; then
+if pull_condor_rpms.sh $TAG $repo_working_path $repo_release_path '' ; then
         # if htcondor rpms were copied, we need to regenerate the repo files
         createrepo --update $repo_working_path
         repoview $repo_working_path
 fi
 
 # Copy relevant htcondor srpms to the working directory, if any
-if pull_condor_rpms.sh $TAG $repo_working_srpm_path 'SRPMS/' ; then
+if pull_condor_rpms.sh $TAG $repo_working_srpm_path $repo_release_srpm_path 'SRPMS/' ; then
         # if htcondor srpms were copied, we need to regenerate the repo files
         createrepo --update $repo_working_srpm_path
         repoview $repo_working_srpm_path
