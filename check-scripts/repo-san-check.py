@@ -71,7 +71,7 @@ class RsyncDirListParser(DirListParser):
 
 
 @functools.lru_cache(maxsize=128)
-def get_koji_listing(tag):
+def get_koji_tag_listing(tag):
     latest = "release" not in tag
     ret = run(["osg-koji", "-q", "list-tagged", tag, "--latest" if latest else ""],
               stdout=subprocess.PIPE, encoding="latin-1")
@@ -79,6 +79,17 @@ def get_koji_listing(tag):
         return [it.split()[0] for it in ret.stdout.splitlines()]
     else:
         return []
+
+
+@functools.lru_cache(maxsize=1024)
+def get_koji_rpm_listing(build):
+    ret = run(["osg-koji", "buildinfo", build],
+              stdout=subprocess.PIPE, encoding="latin-1")
+    if ret.returncode != 0:
+        return []
+    else:
+        column1 = (it.split()[0] for it in ret.stdout.splitlines())
+        return [it for it in column1 if it.endswith(".rpm")]
 
 
 def main(argv=None):
@@ -141,7 +152,9 @@ def main(argv=None):
         expected_num_srpms = None
 
         if koji:
-            expected_num_srpms = len(get_koji_listing(tag))
+            tag_listing = get_koji_tag_listing(tag)
+            # TODO rpm_listing =
+            expected_num_srpms = len(get_koji_tag_listing(tag))
 
         dlp = None
         if method == HTTP:
