@@ -106,10 +106,14 @@ def main(argv=None):
     parser.add_argument("--no-koji",
                         help="Do not compare repo against tags in koji",
                         dest="koji", action="store_false")
+    parser.add_argument("--verbose",
+                        help="Print more info",
+                        action="store_true")
     args = parser.parse_args(argv[1:])
     method = args.method
     repo = args.repo if args.repo else (REPO if method == HTTP else REPO_RSYNC)
     koji = args.koji
+    verbose = args.verbose
 
     if koji and not shutil.which("osg-koji"):
         print("osg-koji not found; can't check tags", file=sys.stderr)
@@ -144,6 +148,8 @@ def main(argv=None):
         if ret.returncode != 0:
             return f"Can't get listing from repo {repo} via RSYNC"
 
+    if verbose:
+        print("{0:<59} {1:<7} {2:<8}".format("DIR", "# RPMS", "MIN # SRPMS"))
     for td in repo_tags_and_directories:
         tag = td.tag
         dir_ = td.directory
@@ -173,14 +179,23 @@ def main(argv=None):
         if "repodata" not in dlp.dir_listing:
             print(f"{dir_} does not have a repodata dir")
         num_rpms = len(dlp.rpm_listing)
+        if verbose:
+            print(f"{dir_:<59} {num_rpms:>7}", end="")
         if "SRPM" in dir_ and expected_num_srpms is not None:
+            if verbose:
+                print(f" {expected_num_srpms:>8}")
             #print(f"{dir_:<60} {num_rpms:>4} {expected_num_srpms:>4}")
             if num_rpms < expected_num_srpms:
                 # We can only check for "fewer" because we don't have a count of the condor SRPMs
                 print(f"{dir_} has fewer RPMs than expected ({num_rpms} vs {expected_num_srpms})")
         elif num_rpms < 5:
+            if verbose:
+                print()
             # We don't know how many RPMs there _should_ be so just make sure there's more than a handful
             print(f"{dir_} only has {num_rpms} RPMs")
+        else:
+            if verbose:
+                print()
 
         if should_have_condor:
             if not filter(lambda f: f.startswith("condor"), dlp.rpm_listing):
