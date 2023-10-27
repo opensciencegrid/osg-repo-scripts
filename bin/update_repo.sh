@@ -63,19 +63,27 @@ if [ "$?" -ne "0" ]; then
         exit 1
 fi
 
+pull_condor_rpms.sh $TAG $repo_working_path $repo_release_path ''
+CONDOR_SYNC_EXIT=$?
 # Copy relevant htcondor rpms to the working directory, if any
-if pull_condor_rpms.sh $TAG $repo_working_path $repo_release_path '' ; then
-        # if htcondor rpms were copied, we need to regenerate the repo files
-        createrepo --update $repo_working_path
-        repoview $repo_working_path
-fi
+case $CONDOR_SYNC_EXIT in
+  0 ) createrepo --update $repo_working_path
+      repoview $repo_working_path ;;
+  1 ) echo "Error: Condor repo sync failed"
+      exit 1 ;;
+  * ) echo "Nothing to be done for condor repo sync" ;;
+esac
 
+pull_condor_rpms.sh $TAG $repo_working_srpm_path $repo_release_srpm_path 'SRPMS/'
+CONDOR_SRPM_SYNC_EXIT=$?
 # Copy relevant htcondor srpms to the working directory, if any
-if pull_condor_rpms.sh $TAG $repo_working_srpm_path $repo_release_srpm_path 'SRPMS/' ; then
-        # if htcondor srpms were copied, we need to regenerate the repo files
-        createrepo --update $repo_working_srpm_path
-        repoview $repo_working_srpm_path
-fi
+case $CONDOR_SRPM_SYNC_EXIT in
+  0 ) createrepo --update $repo_working_srpm_path
+      repoview $repo_working_srpm_path ;;
+  1 ) echo "Error: Condor srpm repo sync failed" 
+      exit 1 ;;
+  * ) echo "Nothing to be done for condor srpm repo sync" ;;
+esac
 
 rm -rf "$previous_path"
 mv "$release_path" "$previous_path"

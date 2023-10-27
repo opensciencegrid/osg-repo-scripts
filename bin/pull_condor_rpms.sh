@@ -21,18 +21,18 @@ usage () {
 }
 
 tag_not_supported() {
-    echo "Tag $TAG does not have a corresponding condor version."
-    exit 0
+    echo "Tag $TAG does not have a corresponding condor version. Nothing to do."
+    exit 2
 }
 
 branch_not_supported() {
-    echo "Branch $1 does not have a corresponding condor branch."
-    exit 1
+    echo "Branch $1 does not have a corresponding condor branch. Nothing to do."
+    exit 2
 }
 
 repo_not_supported() {
-    echo "Repo $1 does not have a corresponding condor repo."
-    exit 1
+    echo "Repo $1 does not have a corresponding condor repo. Nothing to do."
+    exit 2
 }
 
 [[ $# -eq 4 ]] || usage
@@ -62,7 +62,7 @@ esac
 # development -> daily
 case $REPO in
     release ) CONDOR_REPOS=(release) ;;
-    testing ) CONDOR_REPOS=${TESTING_CONDOR_REPOS[@]} ;;
+    testing ) CONDOR_REPOS=(${TESTING_CONDOR_REPOS[@]}) ;;
     development ) CONDOR_REPOS=(daily) ;;
     * ) repo_not_supported $REPO ;;
 esac
@@ -75,6 +75,7 @@ for CONDOR_REPO in ${CONDOR_REPOS[@]}; do
   RSYNC_URL="$RSYNC_ROOT/$CONDOR_SERIES/$DVER/x86_64/$CONDOR_REPO/$SOURCE_SET*.rpm"
   echo "rsyncing $RSYNC_URL to $NEW_REPO_DIR"
   if ! rsync --times $RSYNC_URL $NEW_REPO_DIR --link-dest $CURRENT_REPO_DIR; then
-    echo "Warning: No packages found for $RSYNC_URL. Skipping"
+    echo "Error: No packages found for $RSYNC_URL."
+    exit 1
   fi
 done
