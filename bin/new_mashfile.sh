@@ -56,10 +56,7 @@ esac
 case $SERIES in
     23*) auto_key=4d4384d0       # OSG-23-auto
          developer_key=92897c00  # OSG-23-developer
-         case $REPO in
-           development) STRICT_KEYS=False ;;
-                     *) STRICT_KEYS=True ;;
-         esac
+         STRICT_KEYS=True
          ;;
     3.6) if [[ $DVER == el9 ]]; then
              auto_key=1887c61a   # OSG-4
