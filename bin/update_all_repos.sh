@@ -66,5 +66,8 @@ if [[ $failed = 0 ]]; then
   echo $(date) > /usr/local/repo/osg/timestamp.txt
 fi
 
-exit $failed
+# Update cadist under /usr/local/repo/cadist
+# Updates and errors go to /var/log/repo-update-cadist.{stdout,stderr}
+flock -n /var/lock/repo-update-cadist /usr/bin/repo-update-cadist
 
+exit $failed
