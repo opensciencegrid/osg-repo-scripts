@@ -35,7 +35,8 @@ repo_not_supported() {
     exit 2
 }
 
-[[ $# -eq 4 ]] || usage
+# $SOURCE_SET can be empty
+[[ $# -eq 3 || $# -eq 4 ]] || usage
 
 # read series, branch, dver, and repo from the osg tag
 case $TAG in
