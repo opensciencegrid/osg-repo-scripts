@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+"""repo-san-check.py
+
+A 'sanity checker' for OSG Software repo servers that looks at the
+repository directories to make sure we have at least as many RPMs
+as expected, based on Koji.  (Koji doesn't know about RPMs we merge
+from the HTCondor repos so we can only get a lower bound.)
+
+This can test both rsync and http.  It requires the 'requests' library
+and Python 3.6 or greater.
+
+"""
 # -*- coding: utf-8 -*-
 from argparse import ArgumentParser
 from html.parser import HTMLParser
