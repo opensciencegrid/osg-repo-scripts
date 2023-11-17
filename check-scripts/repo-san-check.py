@@ -42,6 +42,7 @@ class DirListParser:
     -   dir_listing: the list of names of subdirectories in the directory list
     -   rpm_listing: the list of names of RPMs in the directory list
     """
+
     def __init__(self):
         self.dir_listing = []
         self.rpm_listing = []
@@ -55,13 +56,14 @@ class HTMLDirListParser(HTMLParser, DirListParser):
     """Parses an HTML direcctory listing, which is an HTML page that just
     contains links to other files and directories.
     """
+
     def __init__(self):
         HTMLParser.__init__(self)
         DirListParser.__init__(self)
 
     # overridden from HTMLParser
     def handle_starttag(self, tag, attrs):
-        #print(tag, attrs)
+        # print(tag, attrs)
         attrs_d = dict(attrs)
         if tag == "a" and "href" in attrs_d:
             href = attrs_d["href"]
@@ -103,8 +105,11 @@ def get_koji_tag_listing(tag):
     Returns the empty list on failure.
     """
     latest = "release" not in tag
-    ret = run(["osg-koji", "-q", "list-tagged", tag, "--latest" if latest else ""],
-              stdout=subprocess.PIPE, encoding="latin-1")
+    ret = run(
+        ["osg-koji", "-q", "list-tagged", tag, "--latest" if latest else ""],
+        stdout=subprocess.PIPE,
+        encoding="latin-1",
+    )
     if ret.returncode == 0:
         return [it.split()[0] for it in ret.stdout.splitlines()]
     else:
@@ -114,8 +119,9 @@ def get_koji_tag_listing(tag):
 @functools.lru_cache(maxsize=1024)
 def get_koji_rpm_listing(build):
     """Get the list of RPM files in a build (given an NVR or build ID)."""
-    ret = run(["osg-koji", "buildinfo", build],
-              stdout=subprocess.PIPE, encoding="latin-1")
+    ret = run(
+        ["osg-koji", "buildinfo", build], stdout=subprocess.PIPE, encoding="latin-1"
+    )
     if ret.returncode != 0:
         return []
     else:
@@ -128,18 +134,17 @@ def main(argv=None):
         argv = sys.argv
 
     parser = ArgumentParser()
-    parser.add_argument("method",
-                        help="The method to check with (http or rsync)",
-                        choices=METHODS)
-    parser.add_argument("repo",
-                        help="The repo host to check",
-                        nargs="?", default=None)
-    parser.add_argument("--no-koji",
-                        help="Do not compare repo against tags in koji",
-                        dest="koji", action="store_false")
-    parser.add_argument("--verbose",
-                        help="Print more info",
-                        action="store_true")
+    parser.add_argument(
+        "method", help="The method to check with (http or rsync)", choices=METHODS
+    )
+    parser.add_argument("repo", help="The repo host to check", nargs="?", default=None)
+    parser.add_argument(
+        "--no-koji",
+        help="Do not compare repo against tags in koji",
+        dest="koji",
+        action="store_false",
+    )
+    parser.add_argument("--verbose", help="Print more info", action="store_true")
     args = parser.parse_args(argv[1:])
     method = args.method
     repo = args.repo if args.repo else (REPO if method == HTTP else REPO_RSYNC)
@@ -153,17 +158,25 @@ def main(argv=None):
     tag_template = "osg-{repobase}-{el}-{level}"
     dir_template = "osg/{repobase}/{el}/{level}/{archdir}"
     repo_tags_and_directories = [
-        TagAndDirectory(tag_template.format(**locals()), dir_template.format(**locals()), should_have_condor=True)
-            for repobase in ["3.6", "3.6-upcoming", "23-main", "23-upcoming"]
-            for el in ["el8", "el9"]
-            for level in ["development", "testing", "release"]
-            for archdir in ["x86_64", "source/SRPMS"]
+        TagAndDirectory(
+            tag_template.format(**locals()),
+            dir_template.format(**locals()),
+            should_have_condor=True,
+        )
+        for repobase in ["3.6", "3.6-upcoming", "23-main", "23-upcoming"]
+        for el in ["el8", "el9"]
+        for level in ["development", "testing", "release"]
+        for archdir in ["x86_64", "source/SRPMS"]
     ] + [
-        TagAndDirectory(tag_template.format(**locals()), dir_template.format(**locals()), should_have_condor=True)
-            for repobase in ["3.6", "3.6-upcoming"]
-            for el in ["el7"]
-            for level in ["development", "testing", "release"]
-            for archdir in ["x86_64", "source/SRPMS"]
+        TagAndDirectory(
+            tag_template.format(**locals()),
+            dir_template.format(**locals()),
+            should_have_condor=True,
+        )
+        for repobase in ["3.6", "3.6-upcoming"]
+        for el in ["el7"]
+        for level in ["development", "testing", "release"]
+        for archdir in ["x86_64", "source/SRPMS"]
     ]
     # TODO: Add contrib, empty, 3.5, etc.
 
@@ -199,7 +212,11 @@ def main(argv=None):
             dlp = HTMLDirListParser()
             dlp.read_data(resp.text)
         elif method == RSYNC:
-            ret = run(["rsync", f"rsync://{repo}/{dir_}/"], stdout=subprocess.PIPE, encoding="latin-1")
+            ret = run(
+                ["rsync", f"rsync://{repo}/{dir_}/"],
+                stdout=subprocess.PIPE,
+                encoding="latin-1",
+            )
             if ret.returncode != 0:
                 print(f"{dir_} could not be queried")
                 continue
@@ -215,10 +232,12 @@ def main(argv=None):
         if "SRPM" in dir_ and expected_num_srpms is not None:
             if verbose:
                 print(f" {expected_num_srpms:>8}")
-            #print(f"{dir_:<60} {num_rpms:>4} {expected_num_srpms:>4}")
+            # print(f"{dir_:<60} {num_rpms:>4} {expected_num_srpms:>4}")
             if num_rpms < expected_num_srpms:
                 # We can only check for "fewer" because we don't have a count of the condor SRPMs
-                print(f"{dir_} has fewer RPMs than expected ({num_rpms} vs {expected_num_srpms})")
+                print(
+                    f"{dir_} has fewer RPMs than expected ({num_rpms} vs {expected_num_srpms})"
+                )
         elif num_rpms < 5:
             if verbose:
                 print()
