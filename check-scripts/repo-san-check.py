@@ -38,19 +38,28 @@ class TagAndDirectory(NamedTuple):
 
 
 class DirListParser:
+    """Base class for directory list parsers.
+    -   dir_listing: the list of names of subdirectories in the directory list
+    -   rpm_listing: the list of names of RPMs in the directory list
+    """
     def __init__(self):
         self.dir_listing = []
         self.rpm_listing = []
 
     def read_data(self, data: str) -> None:
+        """Populate dir_listing and rpm_listing based on data"""
         raise NotImplementedError()
 
 
 class HTMLDirListParser(HTMLParser, DirListParser):
+    """Parses an HTML direcctory listing, which is an HTML page that just
+    contains links to other files and directories.
+    """
     def __init__(self):
         HTMLParser.__init__(self)
         DirListParser.__init__(self)
 
+    # overridden from HTMLParser
     def handle_starttag(self, tag, attrs):
         #print(tag, attrs)
         attrs_d = dict(attrs)
@@ -67,6 +76,11 @@ class HTMLDirListParser(HTMLParser, DirListParser):
 
 class RsyncDirListParser(DirListParser):
     def handle_line(self, line: str) -> None:
+        """Read a line from an rsync directory listing (which basically
+        looks like the output of `ls -l`) and add it to dir_listing
+        or rpm_listing based on whether it's a subdirectory or a file
+        ending in .rpm
+        """
         try:
             mode, size, date, time, name = line.split(None, 4)
         except ValueError:
@@ -83,6 +97,11 @@ class RsyncDirListParser(DirListParser):
 
 @functools.lru_cache(maxsize=128)
 def get_koji_tag_listing(tag):
+    """Get the list of the build NVRs in a tag.  Gets all builds for "release"
+    repos and only the latest builds for other repos.
+
+    Returns the empty list on failure.
+    """
     latest = "release" not in tag
     ret = run(["osg-koji", "-q", "list-tagged", tag, "--latest" if latest else ""],
               stdout=subprocess.PIPE, encoding="latin-1")
@@ -94,6 +113,7 @@ def get_koji_tag_listing(tag):
 
 @functools.lru_cache(maxsize=1024)
 def get_koji_rpm_listing(build):
+    """Get the list of RPM files in a build (given an NVR or build ID)."""
     ret = run(["osg-koji", "buildinfo", build],
               stdout=subprocess.PIPE, encoding="latin-1")
     if ret.returncode != 0:
