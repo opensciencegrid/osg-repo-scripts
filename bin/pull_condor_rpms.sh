@@ -49,21 +49,18 @@ esac
 # branch "upcoming" corresponds to SERIES.x in htcondor, "main" corresponds to SERIES.0
 # others do not have a corresponding series
 case $BRANCH in
-    main ) 
-        CONDOR_SERIES=$SERIES.0 
-        TESTING_CONDOR_REPOS=(release rc);;
-    upcoming ) CONDOR_SERIES=$SERIES.x
-        TESTING_CONDOR_REPOS=(release rc update) ;;
+    main ) CONDOR_SERIES=$SERIES.0 ;;
+    upcoming ) CONDOR_SERIES=$SERIES.x ;;
     * ) branch_not_supported $BRANCH ;;
 esac
 
 # OSG repos correspond to the condor repos in the following way:
 # release -> release
-# testing -> release and rc (23.0 and 23.x), update (23.x only)
+# testing -> release and update
 # development -> daily
 case $REPO in
     release ) CONDOR_REPOS=(release) ;;
-    testing ) CONDOR_REPOS=(${TESTING_CONDOR_REPOS[@]}) ;;
+    testing ) CONDOR_REPOS=(release update) ;;
     development ) CONDOR_REPOS=(daily) ;;
     * ) repo_not_supported $REPO ;;
 esac
