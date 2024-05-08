@@ -38,7 +38,8 @@ mirrorhosts = [
     # list of mirror base urls, where osg/series/dver/repo/arch can be found
     "http://mirror.hep.wisc.edu/upstream",
     "http://t2.unl.edu",
-    "http://mirror.grid.uchicago.edu/pub"
+    "http://mirror.grid.uchicago.edu/pub",
+    "http://linux-mirrors.fnal.gov/linux/"
 ]
 
 threshold = 24 #hours
