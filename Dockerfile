@@ -1,5 +1,10 @@
 FROM opensciencegrid/software-base:3.6-el7-release
 
+# EL7
+RUN \
+    yum-config-manager --disable base,updates,extras,centosplus >/dev/null \
+    && yum-config-manager --enable C7.9.2009-* >/dev/null
+
 # Install dependencies
 # Note that OSG builds of mash and createrepo are necessary
 RUN \

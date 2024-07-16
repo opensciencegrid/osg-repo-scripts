@@ -33,7 +33,7 @@ tags = [tag.rstrip("\n").split(":")[0] for tag in tagfile]
 tags = sorted(set(tags))
 tagfile.close()
 
-archs = ["i386", "x86_64"]
+archs = ["i386", "x86_64", "aarch64"]
 mirrorhosts = [
     # list of mirror base urls, where osg/series/dver/repo/arch can be found
     "http://mirror.hep.wisc.edu/upstream",
