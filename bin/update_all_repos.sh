@@ -71,7 +71,7 @@ uplink=/usr/local/repo/osg/upcoming
 
 if [[ $failed = 0 ]]; then
   # Update timestamp showing last successful run
-  echo $(date) > /usr/local/repo/osg/timestamp.txt
+  date > /usr/local/repo/osg/timestamp.txt
 fi
 
 
