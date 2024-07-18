@@ -2,14 +2,16 @@
 RSYNC_ROOT="rsync://rsync.cs.wisc.edu/htcondor"
 
 TAG=$1
-NEW_REPO_DIR=$2
-CURRENT_REPO_DIR=$3
-SOURCE_SET=$4
+ARCH=$2
+NEW_REPO_DIR=$3
+CURRENT_REPO_DIR=$4
+SOURCE_SET=$5
 
 usage () {
-  echo "Usage: $(basename "$0") TAG NEW_REPO_DIR CURRENT_REPO_DIR SOURCE_SET"
+  echo "Usage: $(basename "$0") TAG ARCH NEW_REPO_DIR CURRENT_REPO_DIR SOURCE_SET"
   echo "Where:"
   echo "  TAG is osg-SERIES-BRANCH-DVER-REPO"
+  echo "  ARCH is: x86_64, aarch64, etc."
   echo "  SERIES is: 23, 24, etc."
   echo "  DVER is: el8, el9, etc."
   echo "  BRANCH is: main or upcoming"
@@ -35,8 +37,13 @@ repo_not_supported() {
     exit 2
 }
 
+# Print the (escaped) command and arguments we were called with
+echo -n "Running $(basename "$0")"
+printf " %q" "$@"
+echo
+
 # $SOURCE_SET can be empty
-[[ $# -eq 3 || $# -eq 4 ]] || usage
+[[ $# -eq 4 || $# -eq 5 ]] || usage
 
 # read series, branch, dver, and repo from the osg tag
 case $TAG in
@@ -69,8 +76,8 @@ esac
 
 mkdir -p $CURRENT_REPO_DIR
 
-for CONDOR_REPO in ${CONDOR_REPOS[@]}; do
-  RSYNC_DIR_URL="$RSYNC_ROOT/$CONDOR_SERIES/$DVER/x86_64/$CONDOR_REPO/$SOURCE_SET"
+for CONDOR_REPO in "${CONDOR_REPOS[@]}"; do
+  RSYNC_DIR_URL="$RSYNC_ROOT/$CONDOR_SERIES/$DVER/$ARCH/$CONDOR_REPO/$SOURCE_SET"
   RSYNC_URL="$RSYNC_DIR_URL*.rpm"
   echo "rsyncing $RSYNC_URL to $NEW_REPO_DIR"
 

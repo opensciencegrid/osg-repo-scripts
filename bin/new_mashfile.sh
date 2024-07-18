@@ -84,6 +84,9 @@ case $DVER in
   el5|el6 ) ARCHES="i386 x86_64" ;;
         * ) ARCHES="x86_64" ;;
 esac
+if [[ $SERIES = 23* ]]; then
+    ARCHES="x86_64 aarch64"
+fi
 
 TEMPLATEDIR=/usr/share/repo
 

@@ -16,6 +16,8 @@ usage () {
 [[ $# -eq 1 ]] || usage
 TAG=$1
 
+ARCHES=(x86_64)
+
 case $TAG in
   osg-*-*-*-* ) IFS='-' read osg SERIES branch DVER REPO <<< "$TAG"
                          SERIES+=-$branch ;;
@@ -29,6 +31,10 @@ case $TAG in
           * ) usage ;;
 esac
 
+if [[ $SERIES != 3.* ]]; then
+    ARCHES+=(aarch64)
+fi
+
 # Prevent simultaneous mash runs from colliding
 # Causes errors when another instance opens an incompletely downloaded RPM
 # Wait up to 5 minutes for the other task to complete
@@ -40,15 +46,10 @@ if ! flock --wait 300 99  ; then
          exit 1
 fi
 
-arch="x86_64"
 release_path="/usr/local/repo/osg/$SERIES/$DVER/$REPO"
 working_path="/usr/local/repo.working/osg/$SERIES/$DVER/$REPO"
 previous_path="/usr/local/repo.previous/osg/$SERIES/$DVER/$REPO"
 reponame=$TAG
-repo_working_path="$working_path/$reponame/$arch"
-repo_release_path="$release_path/$arch"
-repo_working_srpm_path="$working_path/$reponame/source/SRPMS"
-repo_release_srpm_path="$release_path/source/SRPMS"
 
 if test -d $release_path && grep -q $TAG $OSGTAGS.create-only ; then
   echo "Tag $TAG is create-only and already exists. Skipping"
@@ -64,7 +65,7 @@ if [ "$?" -ne "0" ]; then
 fi
 
 pull_and_check_condor_rpms() {
-  pull_condor_rpms.sh $TAG $1 $2 $3
+  pull_condor_rpms.sh $TAG $1 $2 $3 $4
   CONDOR_SYNC_EXIT=$?
   # Copy relevant htcondor rpms to the working directory, if any
   case $CONDOR_SYNC_EXIT in
@@ -76,9 +77,16 @@ pull_and_check_condor_rpms() {
   esac
 }
 
-pull_and_check_condor_rpms $repo_working_path $repo_release_path
-pull_and_check_condor_rpms $repo_working_srpm_path $repo_release_srpm_path 'SRPMS/'
-pull_and_check_condor_rpms $repo_working_path/debug $repo_release_path/debug 'debug/'
+
+for arch in "${ARCHES[@]}"; do
+    repo_working_path="$working_path/$reponame/$arch"
+    repo_release_path="$release_path/$arch"
+    repo_working_srpm_path="$working_path/$reponame/source/SRPMS"
+    repo_release_srpm_path="$release_path/source/SRPMS"
+    pull_and_check_condor_rpms $arch $repo_working_path $repo_release_path
+    pull_and_check_condor_rpms $arch $repo_working_srpm_path $repo_release_srpm_path 'SRPMS/'
+    pull_and_check_condor_rpms $arch $repo_working_path/debug $repo_release_path/debug 'debug/'
+done
 
 rm -rf "$previous_path"
 mv "$release_path" "$previous_path"

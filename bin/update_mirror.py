@@ -33,7 +33,7 @@ tags = [tag.rstrip("\n").split(":")[0] for tag in tagfile]
 tags = sorted(set(tags))
 tagfile.close()
 
-archs = ["i386", "x86_64"]
+archs = ["x86_64"]
 mirrorhosts = [
     # list of mirror base urls, where osg/series/dver/repo/arch can be found
     "http://mirror.hep.wisc.edu/upstream",
@@ -128,9 +128,12 @@ os.symlink(".osg.prev", "/usr/local/mirror/osg")
 for tag in tags:
     log("checking for "+tag)
     series,dver,repo = tagsplit(tag)
+    tag_archs = __builtins__.list(archs)  # make a copy
+    if "23" in series:  # XXX This script will be replaced before OSG 24 anyway
+        tag_archs.append("aarch64")
     repopath = '/'.join(["/usr/local/mirror/.osg.new",series,dver,repo])
     os.makedirs(repopath)
-    for arch in archs:
+    for arch in tag_archs:
         list = test(mirrorhosts,tag,arch)
         f = open(repopath + "/" + arch, "w")
         for m in list:
