@@ -3,9 +3,9 @@
 
 command -v nslookup &>/dev/null || { echo >&2 "nslookup not found"; exit 127; }
 
-for host in repo repo-rsync repo-itb; do
-    realname=$(nslookup ${host}.opensciencegrid.org | awk '/^Name:/ { print $2 }')
+for host in {repo,repo-rsync,repo-itb}.{opensciencegrid.org,osg-htc.org}; do
+    realname=$(nslookup ${host} | awk '/^Name:/ { print $2; exit }')
     realname=${realname:-NOTFOUND}
-    printf "%15s %s\n" "$host" "$realname"
+    printf "%31s %31s\n" "$host" "$realname"
 done
 
