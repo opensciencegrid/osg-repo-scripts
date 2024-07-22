@@ -65,15 +65,17 @@ if [ "$?" -ne "0" ]; then
 fi
 
 pull_and_check_condor_rpms() {
-  pull_condor_rpms.sh $TAG $1 $2 $3 $4
+  local arch="$1" new_repo_dir="$2" current_repo_dir="$3" source_set="$4"
+  pull_condor_rpms.sh $TAG "$arch" "$new_repo_dir" "$current_repo_dir" "$source_set"
   CONDOR_SYNC_EXIT=$?
   # Copy relevant htcondor rpms to the working directory, if any
   case $CONDOR_SYNC_EXIT in
-    0 ) createrepo --update $1
-        repoview $1 ;;
-    1 ) echo "Error: Condor repo sync failed at path $1"
+    0 ) createrepo --update "$new_repo_dir"
+        repoview "$new_repo_dir"
+        ;;
+    1 ) echo "Error: Condor repo sync failed at path $new_repo_dir"
         exit 1 ;;
-    * ) echo "Nothing to be done for condor repo sync at path $1" ;;
+    * ) echo "Nothing to be done for condor repo sync at path $new_repo_dir" ;;
   esac
 }
 
@@ -94,7 +96,8 @@ mv "$working_path/$reponame" "$release_path"
 
 if [[ $REPO = release && $SERIES != *-upcoming ]]; then
         echo "creating osg-$SERIES-$DVER-release-latest symlink"
-        cd /usr/local/repo/osg/"$SERIES"
+        dest_dir=/usr/local/repo/osg/$SERIES
+        cd "$dest_dir" || { echo "couldn't enter $dest_dir in order to create symlink"; exit 1; }
         # use ls version-sort so that 3.2-11 > 3.2-2
         target=$(ls -v "$DVER/$REPO"/x86_64/osg-release-[1-9]*.rpm | tail -1)
         echo "target: $target"
