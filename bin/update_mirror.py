@@ -37,9 +37,9 @@ archs = ["x86_64"]
 mirrorhosts = [
     # list of mirror base urls, where osg/series/dver/repo/arch can be found
     "http://mirror.hep.wisc.edu/upstream",
-    "http://t2.unl.edu",
-    "http://mirror.grid.uchicago.edu/pub",
-    "http://linux-mirrors.fnal.gov/linux/"
+    "https://t2.unl.edu",
+    "https://mirror.grid.uchicago.edu/pub",
+    "https://linux-mirrors.fnal.gov/linux/"
 ]
 
 threshold = 24 #hours
@@ -78,7 +78,7 @@ def mkarchurl(host,tag,arch):
 
 def test(hosts,tag,arch):
     # always include repo.opensciencegrid.org in list
-    list = [mkarchurl('http://'+hostname,tag,arch)]
+    list = [mkarchurl('https://'+hostname,tag,arch)]
     for host in hosts:
         url = mkarchurl(host,tag,arch)
         mdurl=url+"/repodata/repomd.xml"
