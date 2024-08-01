@@ -73,8 +73,10 @@ case $SERIES in
 esac
 
 # In OSG 23+, we have a separate signing key for development versus
-# promoted packages.
-if [[ $REPO == development || $REPO == contrib ]]; then
+# promoted packages.  The development key is also used for contrib.
+# The tag parsing logic does not set "$REPO" for contrib repos,
+# instead it puts "contrib" in $SERIES
+if [[ $REPO == development || $SERIES == *contrib* ]]; then
     KEYS=$auto_key
 else
     KEYS=$developer_key
