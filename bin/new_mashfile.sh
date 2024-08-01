@@ -75,8 +75,8 @@ esac
 # In OSG 23+, we have a separate signing key for development versus
 # promoted packages.  The development key is also used for contrib.
 # The tag parsing logic does not set "$REPO" for contrib repos,
-# instead it puts "contrib" in $SERIES
-if [[ $REPO == development || $SERIES == *contrib* ]]; then
+# instead it puts "contrib" in $SERIES. Same for empty.
+if [[ $REPO == development || $SERIES == *contrib* || $SERIES == *empty* ]]; then
     KEYS=$auto_key
 else
     KEYS=$developer_key
