@@ -74,7 +74,7 @@ esac
 
 # In OSG 23+, we have a separate signing key for development versus
 # promoted packages.
-if [[ $REPO == development || $REPO == contrib ]]; then
+if [[ $REPO == development ]]; then
     KEYS=$auto_key
 else
     KEYS=$developer_key
