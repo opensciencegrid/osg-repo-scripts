@@ -7,7 +7,6 @@ import tempfile
 import typing as t
 from pathlib import Path
 
-from distrepos.__main__ import _debug  # TODO
 from distrepos.error import TagFailure
 from distrepos.params import Options, Tag
 from distrepos.util import (
@@ -143,7 +142,7 @@ def pull_condor_repos(options: Options, tag: Tag):
             # Finally pull the SRPMs -- these are identical between arches so only
             # pull if we're on the first arch.
             if idx == 0:
-                description = f"rsync from condor repo for source RPMs"
+                description = "rsync from condor repo for source RPMs"
                 ok, proc = rsync_with_link(
                     source_rpms_src + "*.rpm",
                     source_rpms_dst,
@@ -209,7 +208,6 @@ def update_pkglist_files(working_path: Path, arches: t.List[str]):
             with open(f"{arch_pkglist}.new", "wt") as new_pkglist_fh, open(
                 f"{arch_debug_pkglist}.new", "wt"
             ) as new_debug_pkglist_fh:
-
                 # Walk the Packages directory tree and add the relative paths to the RPMs
                 # (relative from src_dir) to the appropriate pkglist file.
                 # Using os.walk() because Path.walk() is not available in Python 3.6
@@ -330,8 +328,8 @@ def update_release_repos(release_path: Path, working_path: Path, previous_path: 
                 "OSError clearing previous dir %s: %s",
                 previous_path,
                 err,
-                exc_info=_debug,
             )
+            _log.debug("Traceback follows", exc_info=True)
             raise TagFailure(failmsg)
     previous_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -346,8 +344,8 @@ def update_release_repos(release_path: Path, working_path: Path, previous_path: 
                 release_path,
                 previous_path,
                 err,
-                exc_info=_debug,
             )
+            _log.debug("Traceback follows", exc_info=True)
             raise TagFailure(failmsg)
     release_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -360,8 +358,8 @@ def update_release_repos(release_path: Path, working_path: Path, previous_path: 
             working_path,
             release_path,
             err,
-            exc_info=_debug,
         )
+        _log.debug("Traceback follows", exc_info=True)
         # Something failed. Undo, undo!
         if previous_path.exists():
             try:
@@ -372,8 +370,8 @@ def update_release_repos(release_path: Path, working_path: Path, previous_path: 
                     previous_path,
                     release_path,
                     err2,
-                    exc_info=_debug,
                 )
+                _log.debug("Traceback follows", exc_info=True)
         raise TagFailure(failmsg)
     _log.info("Successfully released %s", release_path)
 
@@ -396,7 +394,8 @@ def run_one_tag(options: Options, tag: Tag) -> t.Tuple[bool, str]:
         os.makedirs(working_path, exist_ok=True)
     except OSError as err:
         msg = f"OSError creating working dir {working_path}, {err}"
-        _log.error("%s", msg, exc_info=_debug)
+        _log.error("%s", msg)
+        _log.debug("Traceback follows", exc_info=True)
         return False, msg
 
     # Set up the lock file
@@ -409,7 +408,8 @@ def run_one_tag(options: Options, tag: Tag) -> t.Tuple[bool, str]:
             lock_fh = acquire_lock(lock_path)
         except OSError as err:
             msg = f"OSError creating lockfile at {lock_path}, {err}"
-            _log.error("%s", msg, exc_info=_debug)
+            _log.error("%s", msg)
+            _log.debug("Traceback follows", exc_info=True)
             return False, msg
         if not lock_fh:
             msg = f"Another run in progress (unable to lock file {lock_path})"
@@ -433,7 +433,8 @@ def run_one_tag(options: Options, tag: Tag) -> t.Tuple[bool, str]:
             previous_path=previous_path,
         )
     except TagFailure as err:
-        _log.error("Tag %s failed: %s", tag.name, err, exc_info=_debug)
+        _log.error("Tag %s failed: %s", tag.name, err)
+        _log.error("Traceback follows", exc_info=True)
         return False, str(err)
     finally:
         # Release the lock

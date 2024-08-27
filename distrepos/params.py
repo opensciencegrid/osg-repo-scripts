@@ -1,8 +1,10 @@
 import configparser
 import logging
+import logging.handlers
 import os
 import re
 import string
+import sys
 import typing as t
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
 from configparser import ConfigParser
@@ -10,6 +12,9 @@ from pathlib import Path
 
 from distrepos.error import ConfigError, MissingOptionError
 from distrepos.util import match_globlist
+
+MB = 1 << 20
+LOG_MAX_SIZE = 500 * MB
 
 DEFAULT_CONDOR_RSYNC = "rsync://rsync.cs.wisc.edu/htcondor"
 DEFAULT_CONFIG = "/etc/distrepos.conf"
@@ -116,6 +121,36 @@ def get_source_dest_opt(option: str) -> t.List[SrcDst]:
     return ret
 
 
+def setup_logging(logfile: t.Optional[str], debug: bool) -> None:
+    """
+    Sets up logging, given an optional logfile.
+
+    Logs are written to a logfile if one is defined. In addition,
+    log to stderr if it's a tty.
+    """
+    loglevel = logging.DEBUG if debug else logging.INFO
+    rootlog = logging.getLogger()
+    rootlog.setLevel(loglevel)
+    if sys.stderr.isatty():
+        ch = logging.StreamHandler()
+        ch.setLevel(loglevel)
+        chformatter = logging.Formatter(">>>\t%(message)s")
+        ch.setFormatter(chformatter)
+        rootlog.addHandler(ch)
+    if logfile:
+        rfh = logging.handlers.RotatingFileHandler(
+            logfile,
+            maxBytes=LOG_MAX_SIZE,
+            backupCount=1,
+        )
+        rfh.setLevel(loglevel)
+        rfhformatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s",
+        )
+        rfh.setFormatter(rfhformatter)
+        rootlog.addHandler(rfh)
+
+
 def _expand_tagset(config: ConfigParser, tagset_section_name: str):
     """
     Expand a 'tagset' section into multiple 'tag' sections, substituting each
@@ -175,14 +210,20 @@ def _expand_tagset(config: ConfigParser, tagset_section_name: str):
             # interpolation when we read the 'tag' sections created from this
 
 
-def _get_taglist_from_config(
-    config: ConfigParser, tagnames: t.List[str]
-) -> t.List[Tag]:
+def get_taglist(args: Namespace, config: ConfigParser) -> t.List[Tag]:
     """
     Parse the 'tag' and 'tagset' sections in the config to return a list of Tag objects.
     This calls _expand_tagset to expand tagset sections, which may modify the config object.
-    If 'tagnames' is nonempty, limits the tags to only those named in tagnames.
+    If 'args.tags' is nonempty, limits the tags to only those named in args.tags.
+
+    Args:
+        args: command-line arguments parsed by argparse
+        config: ConfigParser configuration
+
+    Returns:
+        a list of Tag objects
     """
+    tagnames = args.tags
     taglist = []
 
     # First process tagsets; this needs to be in a separate loop because it creates
@@ -234,13 +275,46 @@ def parse_config(
     args: Namespace, config: ConfigParser
 ) -> t.Tuple[Options, t.List[Tag]]:
     """
-    Parse the config file and return the Distrepos object from the parameters.
+    Parse the config file and return the tag list and Options object from the parameters.
     Apply any overrides from the command-line.
+    Also set up logging.
     """
-    taglist = _get_taglist_from_config(config, args.tags)
+    if args.debug:
+        debug = True
+    else:
+        try:
+            debug = config.getboolean("options", "debug")
+        except configparser.Error:
+            debug = False
+
+    if args.logfile:
+        logfile = args.logfile
+    else:
+        logfile = config.get("options", "logfile", fallback="")
+    setup_logging(logfile, debug)
+
+    taglist = get_taglist(args, config)
     if not taglist:
         raise ConfigError("No (matching) [tag ...] or [tagset ...] sections found")
 
+    options = get_options(args, config)
+    return (
+        options,
+        taglist,
+    )
+
+
+def get_options(args: Namespace, config: ConfigParser) -> Options:
+    """
+    Build an Options object from the config and command-line arguments.
+
+    Args:
+        args: command-line arguments parsed by argparse
+        config: ConfigParser configuration
+
+    Returns:
+        an Options object
+    """
     if "options" not in config:
         raise ConfigError("Missing required section [options]")
     options_section = config["options"]
@@ -254,19 +328,17 @@ def parse_config(
         previous_root = options_section.get("previous_root", dest_root + ".previous")
     mirror_root = options_section.get("mirror_root", None)
     mirror_hosts = options_section.get("mirror_hosts", "").split()
-    return (
-        Options(
-            dest_root=Path(dest_root),
-            working_root=Path(working_root),
-            previous_root=Path(previous_root),
-            condor_rsync=options_section.get("condor_rsync", DEFAULT_CONDOR_RSYNC),
-            koji_rsync=options_section.get("koji_rsync", DEFAULT_KOJI_RSYNC),
-            lock_dir=Path(args.lock_dir) if args.lock_dir else None,
-            mirror_root=mirror_root,
-            mirror_hosts=mirror_hosts,
-        ),
-        taglist,
+    options = Options(
+        dest_root=Path(dest_root),
+        working_root=Path(working_root),
+        previous_root=Path(previous_root),
+        condor_rsync=options_section.get("condor_rsync", DEFAULT_CONDOR_RSYNC),
+        koji_rsync=options_section.get("koji_rsync", DEFAULT_KOJI_RSYNC),
+        lock_dir=Path(args.lock_dir) if args.lock_dir else None,
+        mirror_root=mirror_root,
+        mirror_hosts=mirror_hosts,
     )
+    return options
 
 
 def get_args(argv: t.List[str]) -> Namespace:
@@ -324,3 +396,4 @@ def get_args(argv: t.List[str]) -> Namespace:
     )
     args = parser.parse_args(argv[1:])
     return args
+
