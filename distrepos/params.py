@@ -23,7 +23,7 @@ LOG_MAX_SIZE = 500 * MB
 
 DEFAULT_CONDOR_RSYNC = "rsync://rsync.cs.wisc.edu/htcondor"
 DEFAULT_CONFIG = "/etc/distrepos.conf"
-DEFAULT_DESTROOT = "/usr/local/repo"
+DEFAULT_DESTROOT = "/data/repo"
 DEFAULT_KOJI_RSYNC = "rsync://kojihub2000.chtc.wisc.edu/repos-dist"
 DEFAULT_LOCK_DIR = "/var/lock/rsync_dist_repo"
 
