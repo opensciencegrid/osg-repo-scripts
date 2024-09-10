@@ -125,6 +125,11 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
     if args.print_tags or args.print_mirrors:
         return 0
 
+    
+    #TODO don't hijack the main for testing mirror
+    create_mirrorlists(options, taglist)
+    return 0
+
     # First check that koji hub is even reachable.  If not, there is no point
     # in proceeding further.
     _log.info("Program started")
