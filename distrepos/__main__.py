@@ -117,9 +117,8 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
             print(
                 format_mirror(
                     tag,
-                    koji_rsync=options.koji_rsync,
-                    condor_rsync=options.condor_rsync,
-                    destroot=options.dest_root,
+                    mirror_root=options.mirror_root,
+                    mirror_hosts=options.mirror_hosts
                 )
             )
             print("------")
