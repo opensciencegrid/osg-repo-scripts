@@ -365,6 +365,7 @@ def get_options(args: Namespace, config: ConfigParser) -> Options:
         working_root = options_section.get("working_root", dest_root + ".working")
         previous_root = options_section.get("previous_root", dest_root + ".previous")
     mirror_root = options_section.get("mirror_root", None)
+    mirror_working_root = options_section.get("mirror_working_root", None)
     mirror_hosts = options_section.get("mirror_hosts", "").split()
     options = Options(
         dest_root=Path(dest_root),
@@ -374,6 +375,7 @@ def get_options(args: Namespace, config: ConfigParser) -> Options:
         koji_rsync=options_section.get("koji_rsync", DEFAULT_KOJI_RSYNC),
         lock_dir=Path(args.lock_dir) if args.lock_dir else None,
         mirror_root=mirror_root,
+        mirror_working_root=mirror_working_root,
         mirror_hosts=mirror_hosts,
     )
     return options
