@@ -33,7 +33,7 @@ from configparser import ConfigParser  # TODO We shouldn't need these
 from configparser import ExtendedInterpolation
 
 from distrepos.error import ERR_EMPTY, ERR_FAILURES, ProgramError
-from distrepos.params import Options, Tag, format_tag, get_args, parse_config
+from distrepos.params import Options, Tag, format_tag, format_mirror, get_args, parse_config
 from distrepos.tag_run import run_one_tag
 from distrepos.mirror_run import update_mirrors_for_tag
 from distrepos.util import acquire_lock, check_rsync, log_ml, release_lock
@@ -112,6 +112,18 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
                 )
             )
             print("------")
+    if args.print_mirrors:
+        for tag in taglist:
+            print(
+                format_mirror(
+                    tag,
+                    koji_rsync=options.koji_rsync,
+                    condor_rsync=options.condor_rsync,
+                    destroot=options.dest_root,
+                )
+            )
+            print("------")
+    if args.print_tags or args.print_mirrors:
         return 0
 
     # First check that koji hub is even reachable.  If not, there is no point

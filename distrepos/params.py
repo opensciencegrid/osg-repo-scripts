@@ -428,5 +428,11 @@ def get_args(argv: t.List[str]) -> Namespace:
         action="store_true",
         help="Don't run, just print the parsed tag definitions to stdout.",
     )
+
+    parser.add_argument(
+        "--print-mirrors",
+        action="store_true",
+        help="Don't update mirrors, just print the parsed mirror list to stdout"
+    )
     args = parser.parse_args(argv[1:])
     return args
