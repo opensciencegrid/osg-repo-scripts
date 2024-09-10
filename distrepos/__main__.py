@@ -35,6 +35,7 @@ from configparser import ExtendedInterpolation
 from distrepos.error import ERR_EMPTY, ERR_FAILURES, ProgramError
 from distrepos.params import Options, Tag, format_tag, get_args, parse_config
 from distrepos.tag_run import run_one_tag
+from distrepos.mirror_run import update_mirrors_for_tag
 from distrepos.util import acquire_lock, check_rsync, log_ml, release_lock
 
 _log = logging.getLogger(__name__)
@@ -68,9 +69,14 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> t.Tuple[bool,
             return False, f"Could not lock {lock_path}"
 
     try:
-        raise NotImplementedError()  # TODO I am here
+        for tag in tags:
+            update_mirrors_for_tag(options, tag)
+    except Exception as e:
+        return False, str(e)
     finally:
         release_lock(lock_fh, lock_path)
+
+    return True, ""
 
 
 #

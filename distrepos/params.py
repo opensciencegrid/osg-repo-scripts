@@ -113,6 +113,25 @@ condor_repos     : {condor_repos_str}
     return ret
 
 
+def format_mirror(
+        tag: Tag, mirror_root: t.Union[os.PathLike, str], mirror_hosts: t.List[str]
+) -> str:
+    """ 
+    Return the pretty-printed parsed information for a tag for which we generating a mirror list
+    """
+    arches_str = " ".join(tag.arches)
+    mirror_hosts = "    \n".join(mirror_hosts)
+
+    return f"""\
+Tag {tag.name}
+dest             : {mirror_root}/{tag.dest}
+arches           : {arches_str}
+path             : {tag.arch_rpms_dest}
+mirror_hosts     : 
+    {mirror_hosts}
+"""
+
+
 def get_source_dest_opt(option: str) -> t.List[SrcDst]:
     """
     Parse a config option of the form
