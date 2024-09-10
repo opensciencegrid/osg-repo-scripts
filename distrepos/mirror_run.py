@@ -53,9 +53,19 @@ def _test_single_mirror(repodata_url)-> bool:
 def update_mirrors_for_tag(options: Options, tag: Tag):
     mirror_hostnames = _get_baseline_urls() + options.mirror_hosts
 
-    for hostname in mirror_hostnames:
-        print(f"Checking mirror {hostname}...")
-
-        for arch in tag.arches:
+    for arch in tag.arches:
+        good_mirrors = []
+        for hostname in mirror_hostnames:
+            print(f"Checking mirror {hostname}...")
             repodata_url = _get_repodata_for_arch(hostname, tag, arch)
-            _test_single_mirror(repodata_url)
+            if _test_single_mirror(repodata_url):
+                good_mirrors.append(hostname)
+
+        dest_path = os.path.join(options.mirror_working_root, tag.dest, arch)
+        print(f"Writing working mirror file {dest_path}")
+        # ensure the output path exists
+        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+        with open(dest_path, 'w') as mirrorf:
+            mirrorf.writelines(good_mirrors)
+    
+

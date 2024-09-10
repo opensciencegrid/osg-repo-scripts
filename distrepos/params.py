@@ -76,6 +76,7 @@ class Options(t.NamedTuple):
     condor_rsync: str
     lock_dir: t.Optional[Path]
     mirror_root: t.Optional[Path]
+    mirror_working_root: t.Optional[Path]
     mirror_hosts: t.List[str]
 
 
@@ -298,7 +299,7 @@ def get_taglist(args: Namespace, config: ConfigParser) -> t.List[Tag]:
                 dest=dest,
                 arches=arches,
                 condor_repos=condor_repos,
-                arch_rpms_repodata=f"{dest}/{arch_rpms_subdir}",
+                arch_rpms_repodata=f"{dest}/{arch_rpms_repodata}",
                 arch_rpms_dest=f"{dest}/{arch_rpms_subdir}",
                 debug_rpms_dest=f"{dest}/{debug_rpms_subdir}",
                 source_rpms_dest=f"{dest}/{source_rpms_subdir}",
