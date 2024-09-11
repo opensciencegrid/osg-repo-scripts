@@ -38,6 +38,9 @@ from distrepos.tag_run import run_one_tag
 from distrepos.mirror_run import update_mirrors_for_tag
 from distrepos.util import acquire_lock, check_rsync, log_ml, release_lock
 
+from datetime import datetime
+from pathlib import Path
+
 _log = logging.getLogger(__name__)
 
 
@@ -171,11 +174,18 @@ def rsync_repos(options: Options, tags: t.Sequence[Tag]) -> int:
 
     return 0
 
+def update_repo_timestamp(options: Options):
+    """
+    At the completion of a successful repo sync, update the time listed in the top-level
+    timestamp.txt file
+    """
+    timestamp_txt = Path(options.dest_root) / 'osg' / 'timestamp.txt'
+    with open(timestamp_txt, 'w') as f:
+        f.write(datetime.now().strftime("%a %d %b %Y %H:%M:%S %Z"))
+
 #
 # Main function
 #
-
-
 def main(argv: t.Optional[t.List[str]] = None) -> int:
     """
     Main function.   Call the functions to parse arguments and config,
@@ -224,6 +234,11 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
 
     if ActionType.MIRROR in args.action and not result:
         result = create_mirrorlists(options, taglist)
+
+
+    # If all actions were successful, update the repo timestamp
+    if not result:
+        update_repo_timestamp()
 
     return result
 
