@@ -61,7 +61,7 @@ class Tag(t.NamedTuple):
     arch_rpms_dest: str
     debug_rpms_dest: str
     source_rpms_dest: str
-    arch_rpms_repodata: str
+    arch_rpm_mirror_base: str
 
 
 class Options(t.NamedTuple):
