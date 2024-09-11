@@ -180,6 +180,7 @@ def update_repo_timestamp(options: Options):
     timestamp.txt file
     """
     timestamp_txt = Path(options.dest_root) / 'osg' / 'timestamp.txt'
+    timestamp_txt.parent.mkdir(parents=True, exist_ok=True)
     with open(timestamp_txt, 'w') as f:
         f.write(datetime.now().strftime("%a %d %b %Y %H:%M:%S %Z"))
 

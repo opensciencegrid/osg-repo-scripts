@@ -409,7 +409,7 @@ def get_args(argv: t.List[str]) -> Namespace:
         "--action",
         nargs="+",
         default=[v.value for v in ActionType],
-        help=f"Which step(s) of the disrepos process to perform, from [{','.join(v.value for v in ActionType)}]"
+        help="Which step(s) of the disrepos process to perform. Default: %(default)s"
     )
     parser.add_argument(
         "--logfile",
