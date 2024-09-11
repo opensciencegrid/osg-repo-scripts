@@ -30,7 +30,7 @@ def _get_baseline_urls() -> t.List[str]:
             "http://repo.osg-htc.org"
         ]
 
-def get_mirror_info_for_arch(hostname: str, tag: Tag, arch: str) -> str:
+def get_mirror_info_for_arch(hostname: str, tag: Tag, arch: str) -> t.Tuple[str, str]:
     path_arch = string.Template(tag.arch_rpms_mirror_base).safe_substitute({"ARCH": arch})
     # TODO this might be a misuse of os.path.join. The more appropriate function,
     # urllib.parse.urljoin, is very sensitive to leading/trailing slashes in the path parts though
