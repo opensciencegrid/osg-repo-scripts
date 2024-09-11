@@ -77,6 +77,7 @@ class Options(t.NamedTuple):
     lock_dir: t.Optional[Path]
     mirror_root: t.Optional[Path]
     mirror_working_root: t.Optional[Path]
+    mirror_prev_root: t.Optional[Path]
     mirror_hosts: t.List[str]
 
 
@@ -365,7 +366,8 @@ def get_options(args: Namespace, config: ConfigParser) -> Options:
         working_root = options_section.get("working_root", dest_root + ".working")
         previous_root = options_section.get("previous_root", dest_root + ".previous")
     mirror_root = options_section.get("mirror_root", None)
-    mirror_working_root = options_section.get("mirror_working_root", None)
+    mirror_working_root = None if mirror_root is None else mirror_root + '.working'
+    mirror_prev_root = None if mirror_root is None else mirror_root + '.prev'
     mirror_hosts = options_section.get("mirror_hosts", "").split()
     options = Options(
         dest_root=Path(dest_root),
@@ -376,6 +378,7 @@ def get_options(args: Namespace, config: ConfigParser) -> Options:
         lock_dir=Path(args.lock_dir) if args.lock_dir else None,
         mirror_root=mirror_root,
         mirror_working_root=mirror_working_root,
+        mirror_prev_root=mirror_prev_root,
         mirror_hosts=mirror_hosts,
     )
     return options

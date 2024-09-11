@@ -72,6 +72,7 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> t.Tuple[bool,
         for tag in tags:
             update_mirrors_for_tag(options, tag)
     except Exception as e:
+        _log.error(e)
         return False, str(e)
     finally:
         release_lock(lock_fh, lock_path)

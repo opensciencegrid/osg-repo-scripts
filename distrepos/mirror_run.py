@@ -1,19 +1,22 @@
 """
 This module contains the functions for populating mirrors for a single tag.
-The main entry point is get_mirrors_for_tag(); other functions are helpers.
+The main entry point is update_mirrors_for_tag(); other functions are helpers.
 """
 
+import logging
 from distrepos.params import Options, Tag
+from distrepos.tag_run import update_release_repos
 import typing as t
 import socket
 import string
 import os
 import requests
 from datetime import datetime, timedelta
+from pathlib import Path
 
+_log = logging.getLogger(__name__)
 
 def _get_baseline_urls() -> t.List[str]:
-    #gethostname() returns actual instance name (like repo2.opensciencegrid.org)
     timeout = 5
     socket.setdefaulttimeout(timeout)
     if 'repo-itb' in socket.gethostname():
@@ -27,16 +30,18 @@ def _get_baseline_urls() -> t.List[str]:
             "http://repo.osg-htc.org"
         ]
 
-def _get_repodata_for_arch(hostname: str, tag: Tag, arch: str):
+def get_repodata_for_arch(hostname: str, tag: Tag, arch: str) -> Path:
     path_arch = string.Template(tag.arch_rpms_repodata).safe_substitute({"ARCH": arch})
+    # TODO this might be a misuse of os.path.join. The more appropriate function,
+    # urllib.parse.urljoin, is very sensitive to leading/trailing slashes in the path parts though
     return os.path.join(hostname, path_arch)
 
 
-def _test_single_mirror(repodata_url)-> bool:
-    print(f"Checking for existence and up-to-dateness of {repodata_url}...")
+def test_single_mirror(repodata_url: str) -> bool:
+    _log.info(f"Checking for existence and up-to-dateness of {repodata_url}...")
     response = requests.get(repodata_url, timeout=10)
     if response.status_code != 200:
-        print("\tbad(non 200) response.code:"+response.status_code)
+        _log.warning("\tbad(non 200) response.code:"+response.status_code)
         return False
     else:
         #make sure the repository is up-to-date
@@ -44,10 +49,10 @@ def _test_single_mirror(repodata_url)-> bool:
         lastmodtime = datetime.strptime(lastmod_str, "%a, %d %b %Y %H:%M:%S %Z") #Sun, 15 Sep 2024 13:34:06 GMT
         age = datetime.now() - lastmodtime
         if datetime.now() - lastmodtime > timedelta(hours=24):
-            print("\ttoo old ("+str(age)+" seconds old) Last-Modified: "+lastmod_str+" .. ignoring")
+            _log.warning("\ttoo old ("+str(age)+" seconds old) Last-Modified: "+lastmod_str+" .. ignoring")
             return False
         else:
-            print("\tall good")
+            _log.warning("\tall good")
             return True
 
 def update_mirrors_for_tag(options: Options, tag: Tag):
@@ -56,16 +61,22 @@ def update_mirrors_for_tag(options: Options, tag: Tag):
     for arch in tag.arches:
         good_mirrors = []
         for hostname in mirror_hostnames:
-            print(f"Checking mirror {hostname}...")
-            repodata_url = _get_repodata_for_arch(hostname, tag, arch)
-            if _test_single_mirror(repodata_url):
+            _log.info(f"Checking mirror {hostname}...")
+            repodata_url = get_repodata_for_arch(hostname, tag, arch)
+            if test_single_mirror(repodata_url):
                 good_mirrors.append(hostname)
 
-        dest_path = os.path.join(options.mirror_working_root, tag.dest, arch)
-        print(f"Writing working mirror file {dest_path}")
+        working_path = Path(options.mirror_working_root) / tag.dest / arch
+        prev_path = Path(options.mirror_prev_root) / tag.dest / arch
+        dest_path = Path(options.mirror_root) / tag.dest / arch
+
+        _log.info(f"Writing working mirror file {working_path}")
         # ensure the output path exists
-        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-        with open(dest_path, 'w') as mirrorf:
-            mirrorf.writelines(good_mirrors)
+        working_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(working_path, 'w') as mirrorf:
+            mirrorf.write('\n'.join(good_mirrors))
+
+        update_release_repos(dest_path, working_path, prev_path)
     
 
