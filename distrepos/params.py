@@ -82,8 +82,8 @@ class Options(t.NamedTuple):
     mirror_hosts: t.List[str]
 
 class ActionType(str, Enum):
-    RSYNC="RSYNC"
-    MIRROR="MIRROR"
+    RSYNC="rsync"
+    MIRROR="mirror"
 
 def format_tag(
     tag: Tag, koji_rsync: str, condor_rsync: str, destroot: t.Union[os.PathLike, str]
@@ -408,7 +408,8 @@ def get_args(argv: t.List[str]) -> Namespace:
     parser.add_argument(
         "--action",
         nargs="+",
-        default=[v.value for v in ActionType]
+        default=[v.value for v in ActionType],
+        help=f"Which step(s) of the disrepos process to perform, from [{','.join(v.value for v in ActionType)}]"
     )
     parser.add_argument(
         "--logfile",

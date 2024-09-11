@@ -238,7 +238,7 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
 
     # If all actions were successful, update the repo timestamp
     if not result:
-        update_repo_timestamp()
+        update_repo_timestamp(options)
 
     return result
 
