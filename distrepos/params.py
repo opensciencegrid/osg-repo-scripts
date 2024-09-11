@@ -61,7 +61,7 @@ class Tag(t.NamedTuple):
     arch_rpms_dest: str
     debug_rpms_dest: str
     source_rpms_dest: str
-    arch_rpm_mirror_base: str
+    arch_rpms_mirror_base: str
 
 
 class Options(t.NamedTuple):
@@ -288,7 +288,7 @@ def get_taglist(args: Namespace, config: ConfigParser) -> t.List[Tag]:
         arches = section["arches"].split()
         condor_repos = get_source_dest_opt(section.get("condor_repos", ""))
         arch_rpms_subdir = section["arch_rpms_subdir"].strip("/")
-        arch_rpms_repodata = section["arch_rpms_repodata"].strip("/")
+        arch_rpms_mirror_base = section["arch_rpms_mirror_base"].strip("/")
         debug_rpms_subdir = section.get(
             "debug_rpms_subdir", fallback=arch_rpms_subdir
         ).strip("/")
@@ -300,7 +300,7 @@ def get_taglist(args: Namespace, config: ConfigParser) -> t.List[Tag]:
                 dest=dest,
                 arches=arches,
                 condor_repos=condor_repos,
-                arch_rpms_repodata=f"{dest}/{arch_rpms_repodata}",
+                arch_rpms_mirror_base=f"{dest}/{arch_rpms_mirror_base}",
                 arch_rpms_dest=f"{dest}/{arch_rpms_subdir}",
                 debug_rpms_dest=f"{dest}/{debug_rpms_subdir}",
                 source_rpms_dest=f"{dest}/{source_rpms_subdir}",
