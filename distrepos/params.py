@@ -17,6 +17,7 @@ from pathlib import Path
 
 from distrepos.error import ConfigError, MissingOptionError
 from distrepos.util import match_globlist
+from enum import Enum
 
 MB = 1 << 20
 LOG_MAX_SIZE = 500 * MB
@@ -80,6 +81,9 @@ class Options(t.NamedTuple):
     mirror_prev_root: t.Optional[Path]
     mirror_hosts: t.List[str]
 
+class ActionType(str, Enum):
+    RSYNC="RSYNC"
+    MIRROR="MIRROR"
 
 def format_tag(
     tag: Tag, koji_rsync: str, condor_rsync: str, destroot: t.Union[os.PathLike, str]
@@ -401,12 +405,11 @@ def get_args(argv: t.List[str]) -> Namespace:
         action="store_true",
         help="Output debug messages",
     )
-    # parser.add_argument(
-    #     "--no-debug",
-    #     dest="debug",
-    #     action="store_false",
-    #     help="Do not output debug messages",
-    # )
+    parser.add_argument(
+        "--action",
+        nargs="+",
+        default=[v.value for v in ActionType]
+    )
     parser.add_argument(
         "--logfile",
         default="",

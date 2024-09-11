@@ -33,7 +33,7 @@ from configparser import ConfigParser  # TODO We shouldn't need these
 from configparser import ExtendedInterpolation
 
 from distrepos.error import ERR_EMPTY, ERR_FAILURES, ProgramError
-from distrepos.params import Options, Tag, format_tag, format_mirror, get_args, parse_config
+from distrepos.params import Options, Tag, ActionType, format_tag, format_mirror, get_args, parse_config
 from distrepos.tag_run import run_one_tag
 from distrepos.mirror_run import update_mirrors_for_tag
 from distrepos.util import acquire_lock, check_rsync, log_ml, release_lock
@@ -46,8 +46,7 @@ _log = logging.getLogger(__name__)
 #
 
 
-# TODO Not implemented
-def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> t.Tuple[bool, str]:
+def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> int:
     """
     Create the files used for mirror lists
 
@@ -56,8 +55,7 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> t.Tuple[bool,
         tags: The list of tags to create mirror lists for
 
     Returns:
-        A (success, message) tuple where success is True or False, and message
-        describes the particular failure.
+        0 if all mirror creations were successful, nonzero otherwise 
     """
     # Set up the lock file
     lock_fh = None
@@ -68,17 +66,110 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> t.Tuple[bool,
         if not lock_fh:
             return False, f"Could not lock {lock_path}"
 
+    # Generate mirrors for each tag defined in the config file.  Tags are run in series.
+    # Keep track of successes and failures.
+    successful : t.List[Tag] = []
+    failed : t.List[t.Tuple[Tag, str]] = []
     try:
         for tag in tags:
-            update_mirrors_for_tag(options, tag)
+            ok, err = update_mirrors_for_tag(options, tag)
+            if ok:
+                _log.info(f"Mirrors generated for tag {tag}")
+                successful.append(tag)
+            else:
+                _log.error(f"Mirrors failed to generate for for tag {tag}: {err}")
+                failed.append((tag, err))
     except Exception as e:
-        _log.error(e)
-        return False, str(e)
+        _log.error(f"Unexpected error while processing mirrors: {e}")
+        return ERR_FAILURES
     finally:
         release_lock(lock_fh, lock_path)
 
-    return True, ""
+    # Report on the results
+    successful_names = [it.name for it in successful]
+    if successful:
+        log_ml(
+            logging.INFO,
+            "%d tag mirror lists generated successfully:\n  %s",
+            len(successful_names),
+            "\n  ".join(successful_names),
+        )
+    if failed:
+        _log.error("%d tag mirror lists failed:", len(failed))
+        for tag, err in failed:
+            _log.error("  %-40s: %s", tag.name, err)
+        return ERR_FAILURES
+    elif not successful:
+        _log.error("No tags mirror lists were generated")
+        return ERR_EMPTY
 
+    return 0
+
+
+def rsync_repos(options: Options, tags: t.Sequence[Tag]) -> int:
+    """
+    Sync repo directories from their build source on Koji to the repo host
+
+    Args:
+        options: The global options for the run
+        tags: The list of tags to rsync from Koji
+
+    Returns:
+        0 if all rsyncs were successful, nonzero otherwise 
+    """
+    # First check that koji hub is even reachable.  If not, there is no point
+    # in proceeding further.
+    _log.info("Program started")
+    check_rsync(options.koji_rsync)
+    _log.info("rsync check successful. Starting run for %d tags", len(tags))
+
+    # Run each tag defined in the config file.  Tags are run in series.
+    # Keep track of successes and failures.
+    successful = []
+    failed = []
+    for tag in tags:
+        _log.info("----------------------------------------")
+        _log.info("Starting tag %s", tag.name)
+        log_ml(
+            logging.DEBUG,
+            "%s",
+            format_tag(
+                tag,
+                koji_rsync=options.koji_rsync,
+                condor_rsync=options.condor_rsync,
+                destroot=options.dest_root,
+            ),
+        )
+        ok, err = run_one_tag(options, tag)
+        if ok:
+            _log.info("Tag %s completed", tag.name)
+            successful.append(tag)
+        else:
+            _log.error("Tag %s failed", tag.name)
+            failed.append((tag, err))
+
+    _log.info("----------------------------------------")
+    _log.info("Run completed")
+
+    # Report on the results
+    successful_names = [it.name for it in successful]
+    if successful:
+        log_ml(
+            logging.INFO,
+            "%d tags succeeded:\n  %s",
+            len(successful_names),
+            "\n  ".join(successful_names),
+        )
+    if failed:
+        _log.error("%d tags failed:", len(failed))
+        for tag, err in failed:
+            _log.error("  %-40s: %s", tag.name, err)
+        return ERR_FAILURES
+    elif not successful:
+        _log.error("No tags were pulled")
+        return ERR_EMPTY
+
+    return 0
 
 #
 # Main function
@@ -127,63 +218,14 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
         return 0
 
     
-    #TODO don't hijack the main for testing mirror
-    create_mirrorlists(options, taglist)
-    return 0
+    result = 0
+    if ActionType.RSYNC in args.action:
+        result = rsync_repos(options, taglist)
 
-    # First check that koji hub is even reachable.  If not, there is no point
-    # in proceeding further.
-    _log.info("Program started")
-    check_rsync(options.koji_rsync)
-    _log.info("rsync check successful. Starting run for %d tags", len(taglist))
+    if ActionType.MIRROR in args.action and not result:
+        result = create_mirrorlists(options, taglist)
 
-    # Run each tag defined in the config file.  Tags are run in series.
-    # Keep track of successes and failures.
-    successful = []
-    failed = []
-    for tag in taglist:
-        _log.info("----------------------------------------")
-        _log.info("Starting tag %s", tag.name)
-        log_ml(
-            logging.DEBUG,
-            "%s",
-            format_tag(
-                tag,
-                koji_rsync=options.koji_rsync,
-                condor_rsync=options.condor_rsync,
-                destroot=options.dest_root,
-            ),
-        )
-        ok, err = run_one_tag(options, tag)
-        if ok:
-            _log.info("Tag %s completed", tag.name)
-            successful.append(tag)
-        else:
-            _log.error("Tag %s failed", tag.name)
-            failed.append((tag, err))
-
-    _log.info("----------------------------------------")
-    _log.info("Run completed")
-
-    # Report on the results
-    successful_names = [it.name for it in successful]
-    if successful:
-        log_ml(
-            logging.INFO,
-            "%d tags succeeded:\n  %s",
-            len(successful_names),
-            "\n  ".join(successful_names),
-        )
-    if failed:
-        _log.error("%d tags failed:", len(failed))
-        for tag, err in failed:
-            _log.error("  %-40s: %s", tag.name, err)
-        return ERR_FAILURES
-    elif not successful:
-        _log.error("No tags were pulled")
-        return ERR_EMPTY
-
-    return 0
+    return result
 
 
 if __name__ == "__main__":
