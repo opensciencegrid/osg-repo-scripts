@@ -30,14 +30,13 @@ def _get_baseline_urls() -> t.List[str]:
             "http://repo.osg-htc.org"
         ]
 
-def get_mirror_base_for_arch(hostname: str, tag: Tag, arch: str) -> str:
+def get_mirror_info_for_arch(hostname: str, tag: Tag, arch: str) -> str:
     path_arch = string.Template(tag.arch_rpms_mirror_base).safe_substitute({"ARCH": arch})
     # TODO this might be a misuse of os.path.join. The more appropriate function,
     # urllib.parse.urljoin, is very sensitive to leading/trailing slashes in the path parts though
-    return os.path.join(hostname, path_arch)
-
-def get_repomd_for_mirror_base(mirror_base: str) -> str:
-    return os.path.join(mirror_base, 'repodata', 'repomd.xml')
+    mirror_base = os.path.join(hostname, path_arch)
+    repomd_url = os.path.join(mirror_base, 'repodata', 'repomd.xml')
+    return mirror_base, repomd_url
 
 def test_single_mirror(repodata_url: str) -> bool:
     _log.info(f"Checking for existence and up-to-dateness of {repodata_url}")
@@ -47,7 +46,10 @@ def test_single_mirror(repodata_url: str) -> bool:
         return False
     else:
         #make sure the repository is up-to-date
-        lastmod_str = response.headers["Last-Modified"]
+        lastmod_str = response.headers.get("Last-Modified")
+        if not lastmod_str:
+            _log.warning(f"Mirror {repodata_url} missing expected 'Last-Modified' header")
+            return False
         lastmodtime = datetime.strptime(lastmod_str, "%a, %d %b %Y %H:%M:%S %Z") #Sun, 15 Sep 2024 13:34:06 GMT
         age = datetime.now() - lastmodtime
         if datetime.now() - lastmodtime > timedelta(hours=24):
@@ -64,8 +66,7 @@ def update_mirrors_for_tag(options: Options, tag: Tag):
         good_mirrors = []
         for hostname in mirror_hostnames:
             _log.info(f"Checking mirror {hostname}")
-            mirror_base = get_mirror_base_for_arch(hostname, tag, arch)
-            repodata_url = get_mirror_base_for_arch(hostname, tag, arch)
+            mirror_base, repodata_url = get_mirror_info_for_arch(hostname, tag, arch)
             if test_single_mirror(repodata_url):
                 good_mirrors.append(mirror_base)
 
