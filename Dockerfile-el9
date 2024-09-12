@@ -42,6 +42,3 @@ RUN for i in mirror repo repo.previous repo.working ; do mkdir -p /data/$i ; ln 
 
 EXPOSE 80/tcp
 EXPOSE 873/tcp
-
-# TODO
-CMD bash
