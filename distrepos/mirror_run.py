@@ -98,18 +98,18 @@ def update_mirrors_for_tag(options: Options, tag: Tag) -> t.Tuple[bool, str]:
             return False, f"No good mirrors found for tag {tag.name}"
         
 
-        working_path = Path(options.mirror_working_root) / tag.dest / arch
-        prev_path = Path(options.mirror_prev_root) / tag.dest / arch
-        dest_path = Path(options.mirror_root) / tag.dest / arch
+    working_path = Path(options.mirror_working_root) / tag.dest 
+    prev_path = Path(options.mirror_prev_root) / tag.dest
+    dest_path = Path(options.mirror_root) / tag.dest
 
-        _log.info(f"Writing working mirror file {working_path}")
-        # ensure the output path exists
-        working_path.parent.mkdir(parents=True, exist_ok=True)
+    _log.info(f"Writing working mirror file {working_path}")
+    # ensure the output path exists
+    working_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(working_path, 'w') as mirrorf:
-            mirrorf.write('\n'.join(good_mirrors))
+    with open(working_path, 'w') as mirrorf:
+        mirrorf.write('\n'.join(good_mirrors))
 
-        update_release_repos(dest_path, working_path, prev_path)
-    
-        return True, ""
+    update_release_repos(dest_path, working_path, prev_path)
+
+    return True, ""
 
