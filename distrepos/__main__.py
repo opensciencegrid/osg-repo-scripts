@@ -78,10 +78,10 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> int:
         for tag in tags:
             ok, err = update_mirrors_for_tag(options, tag)
             if ok:
-                _log.info(f"Mirrors generated for tag {tag}")
+                _log.info(f"Mirrors generated for tag {tag.name}")
                 successful.append(tag)
             else:
-                _log.error(f"Mirrors failed to generate for for tag {tag}: {err}")
+                _log.error(f"Mirrors failed to generate for for tag {tag.name}: {err}")
                 failed.append((tag, err))
     except Exception as e:
         _log.error(f"Unexpected error while processing mirrors: {e}")
