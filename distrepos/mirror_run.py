@@ -22,15 +22,14 @@ def get_baseline_urls() -> t.List[str]:
     """
     timeout = 5
     socket.setdefaulttimeout(timeout)
-    if 'repo-itb' in socket.gethostname():
+    fqdn = socket.getfqdn()
+    if "osgdev" in fqdn or "osg-dev" in fqdn:
         return [
-            "http://repo-itb.opensciencegrid.org", 
-            "http://repo-itb.osg-htc.org"
+            "https://repo-itb.osg-htc.org"
         ]
     else:
         return [
-            "http://repo.opensciencegrid.org", 
-            "http://repo.osg-htc.org"
+            "https://repo.osg-htc.org"
         ]
 
 def get_mirror_info_for_arch(hostname: str, tag: Tag, arch: str) -> t.Tuple[str, str]:
@@ -42,7 +41,7 @@ def get_mirror_info_for_arch(hostname: str, tag: Tag, arch: str) -> t.Tuple[str,
     # TODO this might be a misuse of os.path.join. The more appropriate function,
     # urllib.parse.urljoin, is very sensitive to leading/trailing slashes in the path parts though
     mirror_base = os.path.join(hostname, path_arch)
-    repomd_url = os.path.join(mirror_base, 'repodata', 'repomd.xml')
+    repomd_url = os.path.join(mirror_base, 'repodata/repomd.xml')
     return mirror_base, repomd_url
 
 def test_single_mirror(repodata_url: str) -> bool:
