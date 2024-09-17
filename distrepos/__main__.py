@@ -33,11 +33,16 @@ from configparser import ConfigParser  # TODO We shouldn't need these
 from configparser import ExtendedInterpolation
 
 from distrepos.error import ERR_EMPTY, ERR_FAILURES, ProgramError
-from distrepos.params import Options, Tag, format_tag, get_args, parse_config
+from distrepos.params import Options, Tag, ActionType, format_tag, format_mirror, get_args, parse_config
 from distrepos.tag_run import run_one_tag
+from distrepos.mirror_run import update_mirrors_for_tag
 from distrepos.util import acquire_lock, check_rsync, log_ml, release_lock
 
+from datetime import datetime
+from pathlib import Path
+
 _log = logging.getLogger(__name__)
+_log.addHandler(logging.StreamHandler(sys.stdout))
 
 
 #
@@ -45,8 +50,7 @@ _log = logging.getLogger(__name__)
 #
 
 
-# TODO Not implemented
-def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> t.Tuple[bool, str]:
+def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> int:
     """
     Create the files used for mirror lists
 
@@ -55,8 +59,7 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> t.Tuple[bool,
         tags: The list of tags to create mirror lists for
 
     Returns:
-        A (success, message) tuple where success is True or False, and message
-        describes the particular failure.
+        0 if all mirror creations were successful, nonzero otherwise 
     """
     # Set up the lock file
     lock_fh = None
@@ -67,58 +70,68 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> t.Tuple[bool,
         if not lock_fh:
             return False, f"Could not lock {lock_path}"
 
+    # Generate mirrors for each tag defined in the config file.  Tags are run in series.
+    # Keep track of successes and failures.
+    successful : t.List[Tag] = []
+    failed : t.List[t.Tuple[Tag, str]] = []
     try:
-        raise NotImplementedError()  # TODO I am here
+        for tag in tags:
+            ok, err = update_mirrors_for_tag(options, tag)
+            if ok:
+                _log.info(f"Mirrors generated for tag {tag.name}")
+                successful.append(tag)
+            else:
+                _log.error(f"Mirrors failed to generate for for tag {tag.name}: {err}")
+                failed.append((tag, err))
+    except Exception as e:
+        _log.error(f"Unexpected error while processing mirrors: {e}")
+        return ERR_FAILURES
     finally:
         release_lock(lock_fh, lock_path)
 
+    # Report on the results
+    successful_names = [it.name for it in successful]
+    if successful:
+        log_ml(
+            logging.INFO,
+            "%d tag mirror lists generated successfully:\n  %s",
+            len(successful_names),
+            "\n  ".join(successful_names),
+        )
+    if failed:
+        _log.error("%d tag mirror lists failed:", len(failed))
+        for tag, err in failed:
+            _log.error("  %-40s: %s", tag.name, err)
+        return ERR_FAILURES
+    elif not successful:
+        _log.error("No tags mirror lists were generated")
+        return ERR_EMPTY
 
-#
-# Main function
-#
+    return 0
 
 
-def main(argv: t.Optional[t.List[str]] = None) -> int:
+def rsync_repos(options: Options, tags: t.Sequence[Tag]) -> int:
     """
-    Main function.   Call the functions to parse arguments and config,
-    and set up logging and the parameters for each run.
-    If --print-tags is specified, only print the tag definitions that were
-    parsed from the config file; otherwise, do the run.
+    Sync repo directories from their build source on Koji to the repo host
 
-    Return the exit code of the program.  Success (0) is if at least one tag succeeded
-    and no tags failed.
+    Args:
+        options: The global options for the run
+        tags: The list of tags to rsync from Koji
+
+    Returns:
+        0 if all rsyncs were successful, nonzero otherwise 
     """
-    args = get_args(argv or sys.argv)
-    config_path: str = args.config
-    config = ConfigParser(interpolation=ExtendedInterpolation())
-    config.read(config_path)
-
-    options, taglist = parse_config(args, config)
-
-    if args.print_tags:
-        for tag in taglist:
-            print(
-                format_tag(
-                    tag,
-                    koji_rsync=options.koji_rsync,
-                    condor_rsync=options.condor_rsync,
-                    destroot=options.dest_root,
-                )
-            )
-            print("------")
-        return 0
-
     # First check that koji hub is even reachable.  If not, there is no point
     # in proceeding further.
     _log.info("Program started")
     check_rsync(options.koji_rsync)
-    _log.info("rsync check successful. Starting run for %d tags", len(taglist))
+    _log.info("rsync check successful. Starting run for %d tags", len(tags))
 
     # Run each tag defined in the config file.  Tags are run in series.
     # Keep track of successes and failures.
     successful = []
     failed = []
-    for tag in taglist:
+    for tag in tags:
         _log.info("----------------------------------------")
         _log.info("Starting tag %s", tag.name)
         log_ml(
@@ -161,6 +174,75 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
         return ERR_EMPTY
 
     return 0
+
+def update_repo_timestamp(options: Options):
+    """
+    At the completion of a successful repo sync, update the time listed in the top-level
+    timestamp.txt file
+    """
+    timestamp_txt = Path(options.dest_root) / 'osg' / 'timestamp.txt'
+    timestamp_txt.parent.mkdir(parents=True, exist_ok=True)
+    with open(timestamp_txt, 'w') as f:
+        f.write(datetime.now().strftime("%a %d %b %Y %H:%M:%S %Z"))
+
+#
+# Main function
+#
+def main(argv: t.Optional[t.List[str]] = None) -> int:
+    """
+    Main function.   Call the functions to parse arguments and config,
+    and set up logging and the parameters for each run.
+    If --print-tags is specified, only print the tag definitions that were
+    parsed from the config file; otherwise, do the run.
+
+    Return the exit code of the program.  Success (0) is if at least one tag succeeded
+    and no tags failed.
+    """
+    args = get_args(argv or sys.argv)
+    config_path: str = args.config
+    config = ConfigParser(interpolation=ExtendedInterpolation())
+    config.read(config_path)
+
+    options, taglist = parse_config(args, config)
+
+    if args.print_tags:
+        for tag in taglist:
+            print(
+                format_tag(
+                    tag,
+                    koji_rsync=options.koji_rsync,
+                    condor_rsync=options.condor_rsync,
+                    destroot=options.dest_root,
+                )
+            )
+            print("------")
+    if args.print_mirrors:
+        for tag in taglist:
+            print(
+                format_mirror(
+                    tag,
+                    mirror_root=options.mirror_root,
+                    mirror_hosts=options.mirror_hosts
+                )
+            )
+            print("------")
+    if args.print_tags or args.print_mirrors:
+        return 0
+
+    
+    result = 0
+    if ActionType.RSYNC in args.action:
+        result = rsync_repos(options, taglist)
+
+    if ActionType.MIRROR in args.action and not result:
+        result = create_mirrorlists(options, taglist)
+
+
+    # If all actions were successful, update the repo timestamp
+    if not result:
+        update_repo_timestamp(options)
+
+    return result
 
 
 if __name__ == "__main__":

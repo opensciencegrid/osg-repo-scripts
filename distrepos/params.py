@@ -17,6 +17,7 @@ from pathlib import Path
 
 from distrepos.error import ConfigError, MissingOptionError
 from distrepos.util import match_globlist
+from enum import Enum
 
 MB = 1 << 20
 LOG_MAX_SIZE = 500 * MB
@@ -61,6 +62,7 @@ class Tag(t.NamedTuple):
     arch_rpms_dest: str
     debug_rpms_dest: str
     source_rpms_dest: str
+    arch_rpms_mirror_base: str
 
 
 class Options(t.NamedTuple):
@@ -75,8 +77,13 @@ class Options(t.NamedTuple):
     condor_rsync: str
     lock_dir: t.Optional[Path]
     mirror_root: t.Optional[Path]
+    mirror_working_root: t.Optional[Path]
+    mirror_prev_root: t.Optional[Path]
     mirror_hosts: t.List[str]
 
+class ActionType(str, Enum):
+    RSYNC="rsync"
+    MIRROR="mirror"
 
 def format_tag(
     tag: Tag, koji_rsync: str, condor_rsync: str, destroot: t.Union[os.PathLike, str]
@@ -111,6 +118,25 @@ source_rpms_dest : {destroot}/{tag.source_rpms_dest}
 condor_repos     : {condor_repos_str}
 """
     return ret
+
+
+def format_mirror(
+        tag: Tag, mirror_root: t.Union[os.PathLike, str], mirror_hosts: t.List[str]
+) -> str:
+    """ 
+    Return the pretty-printed parsed information for a tag for which we generating a mirror list
+    """
+    arches_str = " ".join(tag.arches)
+    mirror_hosts = "\n    ".join(mirror_hosts)
+
+    return f"""\
+Tag {tag.name}
+dest             : {mirror_root}/{tag.dest}
+arches           : {arches_str}
+path             : {tag.arch_rpms_dest}
+mirror_hosts     : 
+    {mirror_hosts}
+"""
 
 
 def get_source_dest_opt(option: str) -> t.List[SrcDst]:
@@ -266,6 +292,7 @@ def get_taglist(args: Namespace, config: ConfigParser) -> t.List[Tag]:
         arches = section["arches"].split()
         condor_repos = get_source_dest_opt(section.get("condor_repos", ""))
         arch_rpms_subdir = section["arch_rpms_subdir"].strip("/")
+        arch_rpms_mirror_base = section["arch_rpms_mirror_base"].strip("/")
         debug_rpms_subdir = section.get(
             "debug_rpms_subdir", fallback=arch_rpms_subdir
         ).strip("/")
@@ -277,6 +304,7 @@ def get_taglist(args: Namespace, config: ConfigParser) -> t.List[Tag]:
                 dest=dest,
                 arches=arches,
                 condor_repos=condor_repos,
+                arch_rpms_mirror_base=f"{dest}/{arch_rpms_mirror_base}",
                 arch_rpms_dest=f"{dest}/{arch_rpms_subdir}",
                 debug_rpms_dest=f"{dest}/{debug_rpms_subdir}",
                 source_rpms_dest=f"{dest}/{source_rpms_subdir}",
@@ -342,6 +370,8 @@ def get_options(args: Namespace, config: ConfigParser) -> Options:
         working_root = options_section.get("working_root", dest_root + ".working")
         previous_root = options_section.get("previous_root", dest_root + ".previous")
     mirror_root = options_section.get("mirror_root", None)
+    mirror_working_root = None if mirror_root is None else mirror_root + '.working'
+    mirror_prev_root = None if mirror_root is None else mirror_root + '.prev'
     mirror_hosts = options_section.get("mirror_hosts", "").split()
     options = Options(
         dest_root=Path(dest_root),
@@ -351,6 +381,8 @@ def get_options(args: Namespace, config: ConfigParser) -> Options:
         koji_rsync=options_section.get("koji_rsync", DEFAULT_KOJI_RSYNC),
         lock_dir=Path(args.lock_dir) if args.lock_dir else None,
         mirror_root=mirror_root,
+        mirror_working_root=mirror_working_root,
+        mirror_prev_root=mirror_prev_root,
         mirror_hosts=mirror_hosts,
     )
     return options
@@ -373,12 +405,12 @@ def get_args(argv: t.List[str]) -> Namespace:
         action="store_true",
         help="Output debug messages",
     )
-    # parser.add_argument(
-    #     "--no-debug",
-    #     dest="debug",
-    #     action="store_false",
-    #     help="Do not output debug messages",
-    # )
+    parser.add_argument(
+        "--action",
+        nargs="+",
+        default=[v.value for v in ActionType],
+        help="Which step(s) of the disrepos process to perform. Default: %(default)s"
+    )
     parser.add_argument(
         "--logfile",
         default="",
@@ -408,6 +440,12 @@ def get_args(argv: t.List[str]) -> Namespace:
         "--print-tags",
         action="store_true",
         help="Don't run, just print the parsed tag definitions to stdout.",
+    )
+
+    parser.add_argument(
+        "--print-mirrors",
+        action="store_true",
+        help="Don't update mirrors, just print the parsed mirror list to stdout"
     )
     args = parser.parse_args(argv[1:])
     return args
