@@ -68,7 +68,8 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> int:
         lock_path = options.lock_dir / "mirrors"
         lock_fh = acquire_lock(lock_path)
         if not lock_fh:
-            return False, f"Could not lock {lock_path}"
+            _log.error(f"Could not lock {lock_path}")
+            return ERR_FAILURES
 
     # Generate mirrors for each tag defined in the config file.  Tags are run in series.
     # Keep track of successes and failures.
