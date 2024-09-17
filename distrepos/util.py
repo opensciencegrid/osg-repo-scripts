@@ -2,10 +2,12 @@
 Utilities used in distrepos
 """
 
+import errno
 import fcntl
 import fnmatch
 import logging
 import os
+import re
 import subprocess as sp
 import typing as t
 
@@ -296,6 +298,23 @@ def log_rsync(
         success_level=success_level,
         failure_level=failure_level,
         log=log,
+    )
+
+
+def rsync_disk_is_full(proc: sp.CompletedProcess) -> bool:
+    """
+    Check the output of rsync to see if it complained about writing to a
+    full disk.
+
+    Returns:
+        True if rsync failed to a full disk.
+    """
+    return bool(
+        re.search(
+            r"rsync: \[receiver] write failed.*[(]%d[)]$" % errno.ENOSPC,
+            proc.stderr,
+            re.MULTILINE
+        )
     )
 
 

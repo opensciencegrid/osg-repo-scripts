@@ -3,6 +3,7 @@ This module contains the functions for handling a single tag.
 The main entry point is run_one_tag(); other functions are helpers.
 """
 
+import errno
 import logging
 import os
 import shutil
@@ -12,7 +13,7 @@ import tempfile
 import typing as t
 from pathlib import Path
 
-from distrepos.error import TagFailure
+from distrepos.error import DiskFullError, TagFailure
 from distrepos.params import Options, Tag
 from distrepos.util import (
     RSYNC_NOT_FOUND,
@@ -21,6 +22,7 @@ from distrepos.util import (
     log_rsync,
     release_lock,
     rsync,
+    rsync_disk_is_full,
     rsync_with_link,
     run_with_log,
 )
@@ -71,6 +73,8 @@ def rsync_from_koji(source_url, dest_path, link_path):
     ok, proc = rsync_with_link(source_url, dest_path, link_path)
     log_rsync(proc, description)
     if not ok:
+        if rsync_disk_is_full(proc):
+            raise DiskFullError(description)
         raise TagFailure(f"Error with {description}")
     _log.info("%s ok", description)
 
@@ -127,6 +131,8 @@ def pull_condor_repos(options: Options, tag: Tag):
             if ok:
                 _log.info("%s ok", description)
             else:
+                if rsync_disk_is_full(proc):
+                    raise DiskFullError(description)
                 raise TagFailure(f"Error pulling condor repos: {description}")
 
             # Next pull the debuginfo RPMs.  These may not exist.
@@ -140,6 +146,8 @@ def pull_condor_repos(options: Options, tag: Tag):
             )
             log_rsync(proc, description, not_found_is_ok=True)
             if proc.returncode not in {RSYNC_OK, RSYNC_NOT_FOUND}:
+                if rsync_disk_is_full(proc):
+                    raise DiskFullError(description)
                 raise TagFailure(f"Error pulling condor repos: {description}")
             else:
                 _log.info("%s ok", description)
@@ -159,6 +167,8 @@ def pull_condor_repos(options: Options, tag: Tag):
                 if ok:
                     _log.info("%s ok", description)
                 else:
+                    if rsync_disk_is_full(proc):
+                        raise DiskFullError(description)
                     raise TagFailure(f"Error pulling condor repos: {description}")
 
 
@@ -196,7 +206,10 @@ def update_pkglist_files(working_path: Path, arches: t.List[str]):
         shutil.move(f"{src_pkglist}.new", src_pkglist)
         _log.info("Updating %s ok", src_pkglist)
     except OSError as err:
-        raise TagFailure(f"OSError updating pkglist file {src_pkglist}: {err}") from err
+        description = f"updating pkglist file {src_pkglist}"
+        if err.errno == errno.ENOSPC:
+            raise DiskFullError(description) from err
+        raise TagFailure(f"OSError {description}: {err}") from err
 
     # Update pkglist files for binary RPMs for each arch.  Each arch has its
     # own directory with a pkglist file, and a debug subdirectory with another
@@ -239,8 +252,11 @@ def update_pkglist_files(working_path: Path, arches: t.List[str]):
             shutil.move(f"{arch_debug_pkglist}.new", arch_debug_pkglist)
             _log.info("Updating %s ok", arch_debug_pkglist)
         except OSError as err:
+            description = f"updating pkglist files {arch_pkglist} and {arch_debug_pkglist}"
+            if err.errno == errno.ENOSPC:
+                raise DiskFullError(description) from err
             raise TagFailure(
-                f"OSError updating pkglist files {arch_pkglist} and {arch_debug_pkglist}: {err}"
+                f"OSError {description}: {err}"
             ) from err
 
 

@@ -10,6 +10,7 @@ ERR_CONFIG = 3
 ERR_RSYNC = 4
 ERR_FAILURES = 5
 ERR_EMPTY = 6
+ERR_DISKFULL = 7
 
 #
 # Error classes
@@ -35,6 +36,17 @@ class RsyncError(ProgramError):
 
     def __str__(self):
         return f"rsync error: {super().__str__()}"
+
+
+class DiskFullError(ProgramError):
+    """
+    Class for the disk being filled up; this is fatal.
+    """
+    def __init__(self, *args):
+        super().__init__(ERR_DISKFULL, *args)
+
+    def __str__(self):
+        return f"disk full: {super().__str__()}"
 
 
 class ConfigError(ProgramError):

@@ -167,17 +167,16 @@ def setup_logging(logfile: t.Optional[str], debug: bool) -> None:
     Sets up logging, given an optional logfile.
 
     Logs are written to a logfile if one is defined. In addition,
-    log to stderr if it's a tty.
+    log to stderr.
     """
     loglevel = logging.DEBUG if debug else logging.INFO
     rootlog = logging.getLogger()
     rootlog.setLevel(loglevel)
-    if sys.stderr.isatty():
-        ch = logging.StreamHandler()
-        ch.setLevel(loglevel)
-        chformatter = logging.Formatter(">>>\t%(message)s")
-        ch.setFormatter(chformatter)
-        rootlog.addHandler(ch)
+    ch = logging.StreamHandler()
+    ch.setLevel(loglevel)
+    chformatter = logging.Formatter("[%(asctime)s]\t%(message)s")
+    ch.setFormatter(chformatter)
+    rootlog.addHandler(ch)
     if logfile:
         rfh = logging.handlers.RotatingFileHandler(
             logfile,
