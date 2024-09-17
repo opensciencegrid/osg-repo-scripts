@@ -42,7 +42,6 @@ from datetime import datetime
 from pathlib import Path
 
 _log = logging.getLogger(__name__)
-_log.addHandler(logging.StreamHandler(sys.stdout))
 
 
 #
