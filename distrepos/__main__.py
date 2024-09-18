@@ -33,7 +33,15 @@ from configparser import ConfigParser  # TODO We shouldn't need these
 from configparser import ExtendedInterpolation
 
 from distrepos.error import ERR_EMPTY, ERR_FAILURES, ProgramError
-from distrepos.params import Options, Tag, ActionType, format_tag, format_mirror, get_args, parse_config
+from distrepos.params import (
+    Options,
+    Tag,
+    ActionType,
+    format_tag,
+    format_mirror,
+    get_args,
+    parse_config,
+)
 from distrepos.tag_run import run_one_tag
 from distrepos.mirror_run import update_mirrors_for_tag
 from distrepos.util import acquire_lock, check_rsync, log_ml, release_lock
@@ -58,7 +66,7 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> int:
         tags: The list of tags to create mirror lists for
 
     Returns:
-        0 if all mirror creations were successful, nonzero otherwise 
+        0 if all mirror creations were successful, nonzero otherwise
     """
     # Set up the lock file
     lock_fh = None
@@ -72,8 +80,8 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> int:
 
     # Generate mirrors for each tag defined in the config file.  Tags are run in series.
     # Keep track of successes and failures.
-    successful : t.List[Tag] = []
-    failed : t.List[t.Tuple[Tag, str]] = []
+    successful: t.List[Tag] = []
+    failed: t.List[t.Tuple[Tag, str]] = []
     try:
         for tag in tags:
             ok, err = update_mirrors_for_tag(options, tag)
@@ -119,7 +127,7 @@ def rsync_repos(options: Options, tags: t.Sequence[Tag]) -> int:
         tags: The list of tags to rsync from Koji
 
     Returns:
-        0 if all rsyncs were successful, nonzero otherwise 
+        0 if all rsyncs were successful, nonzero otherwise
     """
     # First check that koji hub is even reachable.  If not, there is no point
     # in proceeding further.
@@ -175,6 +183,7 @@ def rsync_repos(options: Options, tags: t.Sequence[Tag]) -> int:
 
     return 0
 
+
 def update_repo_timestamp(options: Options):
     """
     At the completion of a successful repo sync, update the time listed in the top-level
@@ -184,6 +193,7 @@ def update_repo_timestamp(options: Options):
     timestamp_txt.parent.mkdir(parents=True, exist_ok=True)
     with open(timestamp_txt, 'w') as f:
         f.write(datetime.now().strftime("%a %d %b %Y %H:%M:%S %Z"))
+
 
 #
 # Main function
@@ -222,21 +232,19 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
                 format_mirror(
                     tag,
                     mirror_root=options.mirror_root,
-                    mirror_hosts=options.mirror_hosts
+                    mirror_hosts=options.mirror_hosts,
                 )
             )
             print("------")
     if args.print_tags or args.print_mirrors:
         return 0
 
-    
     result = 0
     if ActionType.RSYNC in args.action:
         result = rsync_repos(options, taglist)
 
     if ActionType.MIRROR in args.action and not result:
         result = create_mirrorlists(options, taglist)
-
 
     # If all actions were successful, update the repo timestamp
     if not result:

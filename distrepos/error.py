@@ -42,6 +42,7 @@ class DiskFullError(ProgramError):
     """
     Class for the disk being filled up; this is fatal.
     """
+
     def __init__(self, *args):
         super().__init__(ERR_DISKFULL, *args)
 

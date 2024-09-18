@@ -81,9 +81,11 @@ class Options(t.NamedTuple):
     mirror_prev_root: t.Optional[Path]
     mirror_hosts: t.List[str]
 
+
 class ActionType(str, Enum):
-    RSYNC="rsync"
-    MIRROR="mirror"
+    RSYNC = "rsync"
+    MIRROR = "mirror"
+
 
 def format_tag(
     tag: Tag, koji_rsync: str, condor_rsync: str, destroot: t.Union[os.PathLike, str]
@@ -121,9 +123,9 @@ condor_repos     : {condor_repos_str}
 
 
 def format_mirror(
-        tag: Tag, mirror_root: t.Union[os.PathLike, str], mirror_hosts: t.List[str]
+    tag: Tag, mirror_root: t.Union[os.PathLike, str], mirror_hosts: t.List[str]
 ) -> str:
-    """ 
+    """
     Return the pretty-printed parsed information for a tag for which we generating a mirror list
     """
     arches_str = " ".join(tag.arches)
@@ -408,7 +410,7 @@ def get_args(argv: t.List[str]) -> Namespace:
         "--action",
         nargs="+",
         default=[v.value for v in ActionType],
-        help="Which step(s) of the disrepos process to perform. Default: %(default)s"
+        help="Which step(s) of the disrepos process to perform. Default: %(default)s",
     )
     parser.add_argument(
         "--logfile",
@@ -444,7 +446,7 @@ def get_args(argv: t.List[str]) -> Namespace:
     parser.add_argument(
         "--print-mirrors",
         action="store_true",
-        help="Don't update mirrors, just print the parsed mirror list to stdout"
+        help="Don't update mirrors, just print the parsed mirror list to stdout",
     )
     args = parser.parse_args(argv[1:])
     return args

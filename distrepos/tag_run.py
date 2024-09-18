@@ -252,12 +252,12 @@ def update_pkglist_files(working_path: Path, arches: t.List[str]):
             shutil.move(f"{arch_debug_pkglist}.new", arch_debug_pkglist)
             _log.info("Updating %s ok", arch_debug_pkglist)
         except OSError as err:
-            description = f"updating pkglist files {arch_pkglist} and {arch_debug_pkglist}"
+            description = (
+                f"updating pkglist files {arch_pkglist} and {arch_debug_pkglist}"
+            )
             if err.errno == errno.ENOSPC:
                 raise DiskFullError(description) from err
-            raise TagFailure(
-                f"OSError {description}: {err}"
-            ) from err
+            raise TagFailure(f"OSError {description}: {err}") from err
 
 
 def run_createrepo(working_path: Path, arches: t.List[str]):

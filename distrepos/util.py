@@ -313,7 +313,7 @@ def rsync_disk_is_full(proc: sp.CompletedProcess) -> bool:
         re.search(
             r"rsync: \[receiver] write failed.*[(]%d[)]$" % errno.ENOSPC,
             proc.stderr,
-            re.MULTILINE
+            re.MULTILINE,
         )
     )
 
