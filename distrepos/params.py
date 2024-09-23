@@ -84,6 +84,7 @@ class Options(t.NamedTuple):
 
 class ActionType(str, Enum):
     RSYNC = "rsync"
+    CADIST = "cadist"
     MIRROR = "mirror"
 
 

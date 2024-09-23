@@ -10,8 +10,10 @@ import os
 import re
 import subprocess as sp
 import typing as t
+from io import StringIO
 
 from distrepos.error import RsyncError
+from contextlib import contextmanager
 
 RSYNC_OK = 0
 RSYNC_NOT_FOUND = 23
@@ -19,6 +21,26 @@ RSYNC_NOT_FOUND = 23
 #
 # Functions for locking
 #
+
+@contextmanager
+def lock_context(lock_dir: t.Optional[os.PathLike], lock_subpath: t.Union[str, os.PathLike],  log: t.Optional[logging.Logger] = None):
+    """
+    Helper function to create a wrapper context that locks a file for the duration of some work
+    """
+    try:
+        lock_fh = None
+        lock_path = ""
+        if lock_dir:
+            lock_path = lock_dir / lock_subpath
+            lock_fh = acquire_lock(lock_path)
+            if log and not lock_fh:
+                log.error(f"Could not lock {lock_path}")
+            yield lock_fh
+        else:
+            yield StringIO("") # Yield a truthy empty IO if no lock is needed
+    finally:
+        release_lock(lock_fh, lock_path)
+
 
 
 def acquire_lock(
