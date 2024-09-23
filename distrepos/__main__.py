@@ -181,10 +181,16 @@ def update_cadist(options: Options) -> int:
     TODO repo-update-cadist redirects its own stdout/err to log files which doesn't work well
          with subprocess' output piping. For now, just log basic success/failure info
     """
+    _log.info("Starting repo-update-cadist")
+
     with lock_context(options.lock_dir, 'cadist', log=_log) as lock_fh:
         if not lock_fh:
             return ERR_FAILURES
-        _, cadist_proc = run_with_log('/usr/bin/repo-update-cadist', log=_log)
+        ok, cadist_proc = run_with_log('/usr/bin/repo-update-cadist', log=_log)
+        if ok:
+            _log.info("repo-update-cadist succeeded")
+        else :
+            _log.warning(f"repo-update-cadist failed with status code {cadist_proc.returncode}")
         return cadist_proc.returncode
 
 
