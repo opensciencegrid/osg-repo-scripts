@@ -44,7 +44,7 @@ from distrepos.params import (
 )
 from distrepos.tag_run import run_one_tag
 from distrepos.mirror_run import update_mirrors_for_tag
-from distrepos.util import acquire_lock, check_rsync, log_ml, release_lock
+from distrepos.util import lock_context, check_rsync, log_ml, run_with_log
 
 from datetime import datetime
 from pathlib import Path
@@ -55,7 +55,6 @@ _log = logging.getLogger(__name__)
 #
 # Functions for dealing with the mirror list
 #
-
 
 def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> int:
     """
@@ -68,34 +67,25 @@ def create_mirrorlists(options: Options, tags: t.Sequence[Tag]) -> int:
     Returns:
         0 if all mirror creations were successful, nonzero otherwise
     """
-    # Set up the lock file
-    lock_fh = None
-    lock_path = ""
-    if options.lock_dir:
-        lock_path = options.lock_dir / "mirrors"
-        lock_fh = acquire_lock(lock_path)
-        if not lock_fh:
-            _log.error(f"Could not lock {lock_path}")
-            return ERR_FAILURES
-
-    # Generate mirrors for each tag defined in the config file.  Tags are run in series.
-    # Keep track of successes and failures.
     successful: t.List[Tag] = []
     failed: t.List[t.Tuple[Tag, str]] = []
-    try:
-        for tag in tags:
-            ok, err = update_mirrors_for_tag(options, tag)
-            if ok:
-                _log.info(f"Mirrors generated for tag {tag.name}")
-                successful.append(tag)
-            else:
-                _log.error(f"Mirrors failed to generate for for tag {tag.name}: {err}")
-                failed.append((tag, err))
-    except Exception as e:
-        _log.error(f"Unexpected error while processing mirrors: {e}")
-        return ERR_FAILURES
-    finally:
-        release_lock(lock_fh, lock_path)
+    with lock_context(options.lock_dir, 'mirrors', log=_log) as lock_fh:
+        if not lock_fh:
+            return ERR_FAILURES
+        # Generate mirrors for each tag defined in the config file.  Tags are run in series.
+        # Keep track of successes and failures.
+        try:
+            for tag in tags:
+                ok, err = update_mirrors_for_tag(options, tag)
+                if ok:
+                    _log.info(f"Mirrors generated for tag {tag.name}")
+                    successful.append(tag)
+                else:
+                    _log.error(f"Mirrors failed to generate for for tag {tag.name}: {err}")
+                    failed.append((tag, err))
+        except Exception as e:
+            _log.error(f"Unexpected error while processing mirrors: {e}")
+            return ERR_FAILURES
 
     # Report on the results
     successful_names = [it.name for it in successful]
@@ -183,6 +173,20 @@ def rsync_repos(options: Options, tags: t.Sequence[Tag]) -> int:
 
     return 0
 
+def update_cadist(options: Options) -> int:
+    """
+    Run repo-update-cadist (from https://github.com/opensciencegrid/repo-update-cadist/).
+    Pass along its return code
+
+    TODO repo-update-cadist redirects its own stdout/err to log files which doesn't work well
+         with subprocess' output piping. For now, just log basic success/failure info
+    """
+    with lock_context(options.lock_dir, 'cadist', log=_log) as lock_fh:
+        if not lock_fh:
+            return ERR_FAILURES
+        _, cadist_proc = run_with_log('/usr/bin/repo-update-cadist', log=_log)
+        return cadist_proc.returncode
+
 
 def update_repo_timestamp(options: Options):
     """
@@ -242,6 +246,9 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
     result = 0
     if ActionType.RSYNC in args.action:
         result = rsync_repos(options, taglist)
+
+    if ActionType.CADIST in args.action and not result:
+        result = update_cadist(options)
 
     if ActionType.MIRROR in args.action and not result:
         result = create_mirrorlists(options, taglist)
