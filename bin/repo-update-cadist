@@ -1,0 +1,253 @@
+#!/bin/bash
+## update cadist on repo1,repo2,repo-itb
+## Copied from https://github.com/opensciencegrid/repo-update-cadist @ 041e0f7ac84b68be9e7d11bd257925682238d286
+
+set -o nounset
+
+TMPROOT=$(mktemp -d)
+trap 'rm -rf "$TMPROOT"' EXIT
+GOC=/usr/local
+INSTALLBASE=${GOC}/repo
+CAINSTALL=${INSTALLBASE}/cadist
+RPMREPO=osg
+USER=${USER:-$(id -un)}
+
+usage () {
+    echo "Usage: $(basename "$0") [--testing]" >&2
+    echo "  --testing    Download from the \"osg-testing\" repositories (instead of \"osg\")" >&2
+    echo "  -h|--help    This message" >&2
+}
+
+temp=$(getopt -o 'h' --long 'help,testing' -n "$(basename "$0")" -- "$@")
+if [[ $? != 0 ]]; then
+    echo "Usage error" >&2
+    usage
+    exit 2
+fi
+eval set -- "$temp"
+while true; do
+    case $1 in
+    -h|--help)
+        usage
+        exit 0
+    ;;
+    --testing)
+        RPMREPO=osg-testing
+        shift
+    ;;
+    --)
+        shift
+        break
+    ;;
+    *)
+        echo "Internal error parsing options" >&2
+        exit 1
+    ;;
+    esac
+done
+
+
+LOGREDIRECTFILENAME="/var/log/repo-update-cadist"
+
+
+message () {
+    echo "$(date)" "$@" >&2
+}
+
+
+[[ $(id -u) == 0 ]] || { message "Not running as root. Bailing."; exit 1; }
+which yumdownloader &> /dev/null  ||  { message "yumdownloader not found. Install the yum-utils package."; exit 1; }
+
+# Clear caches so we download the latest version
+yum --disablerepo=\* --enablerepo="$RPMREPO" clean all 1>&2
+yum --disablerepo=\* --enablerepo="$RPMREPO" clean expire-cache 1>&2
+
+for TYPES in NEW IGTFNEW; do
+    SUFFIX=$TYPES
+    case ${TYPES} in
+        IGTFNEW)
+            SYMEXT="igtf-new"
+            FILEEXT="-igtf-new"
+            CURRDIR="igtf-new"
+            RPM="igtf-ca-certs"
+            ;;
+        NEW)
+            SYMEXT="new"
+            FILEEXT="-new"
+            CURRDIR="new"
+            RPM="osg-ca-certs"
+            ;;
+        *)
+            message "Bad thing, if this happens something is really wrong"
+            exit 1
+            ;;
+    esac
+
+    ## Get the CA certs distribution tarball by downloading the source RPM of
+    ## the appropriate package and extracting the tarball from it.
+    DOWNLOADDIR=$TMPROOT/download-$SUFFIX
+    mkdir -p "$DOWNLOADDIR"
+    pushd "$DOWNLOADDIR" >/dev/null
+    # yumdownloader prints errors to stdout and is quiet when everything is ok
+    yumdownloader --disablerepo=\* --enablerepo="$RPMREPO" "$RPM" 1>&2
+    RPMFILE=(*.noarch.rpm)
+    if [[ ! -f $RPMFILE ]]; then
+        message "$RPM: unable to download from repos"
+        exit 1
+    fi
+
+    # create tarball from rpm such that the checksum is reproducible
+
+    mkdir tarball-tmp
+    rpm2cpio "$RPMFILE" | (
+        cd tarball-tmp
+        cpio --quiet -idm
+    )
+    # cpio -m does not set symlink timestamps, so set them to match targets
+    # this way, the tarball checksum is reproducible
+    (
+        cd tarball-tmp/etc/grid-security/certificates
+        find -type l -exec bash -c '
+            for x; do touch -hr "$(readlink "$x")" "$x"; done' - {} +
+    )
+    mv tarball-tmp/etc/grid-security/certificates .
+    IGTF_VER=$(awk '$1 == "version" {print $3; exit}' certificates/*.info)
+    OSG_VER=$(awk '/OSGversion/ {print $3}' certificates/INDEX.txt)
+    TARBALL=osg-certificates-${OSG_VER}.tar.gz
+
+    # TARBALL should be like "osg-certificates-1.59NEW.tar.gz"
+    if [[ ! $OSG_VER =~ ^([[:digit:]]+\.[[:digit:]]+)${SUFFIX}$ ]]; then
+        message "Bad OSGversion: '$OSG_VER'"
+        message "Extracted from INDEX.txt in $RPMFILE"
+        exit 1
+    fi
+
+    VERSION_CA=${BASH_REMATCH[1]}
+    # VERSION_CA should be like "1.59"
+
+    # again, care is taken here to make a tarball with a reproducible checksum
+    tar c certificates/* --{owner,group}=root | gzip -n > "$TARBALL"
+
+    tarball_sha256sum=$(sha256sum < "$TARBALL" | awk '{print $1}')
+
+    ## Save the tarball
+    CADIR="${TMPROOT}/cadist/${VERSION_CA}${SUFFIX}"
+    CATARBALL="${CADIR}/$TARBALL"
+
+    mkdir -p "${CADIR}"
+    mv -f "$TARBALL" "$CATARBALL"
+
+    # Clean up
+    popd >/dev/null
+    rm -rf "$DOWNLOADDIR"
+
+
+    ## Generate the "version" file (aka manifest) - this has a name like
+    ## ca-certs-version-1.59NEW and is a txt file with the checksum of the
+    ## tarball in it. Then rename it to add the "-new" or "-igtf-new"
+    ## suffix.
+    VERSIONFILE=${TMPROOT}/cadist/ca-certs-version${FILEEXT}
+    REPO_CADIST=http://repo.opensciencegrid.org/cadist
+    TARBALL_URL=$REPO_CADIST/${VERSION_CA}${SUFFIX}/$TARBALL
+
+    # generate manifest
+    timestamp=$(date -u +"%Y%m%dT%H%M%S")
+    { echo "dataversion=1             # The version of data in this file"
+      echo "timestamp=$timestamp # Time of creation of this file"
+      echo "certsversion=$OSG_VER  # Version of the certificates"
+      echo "versiondesc=$OSG_VER (includes IGTF $IGTF_VER pre-release CAs)"
+      echo "tarball=$TARBALL_URL"
+      echo "tarball_sha256sum=$tarball_sha256sum"
+    } > "$VERSIONFILE"
+
+
+    EXTRACT_FILES="certificates/CHANGES certificates/INDEX.html certificates/INDEX.txt"
+    cd "$CADIR"
+
+    ## Extract INDEX.txt and CHANGES file; move them appropriately
+    tar --no-same-owner -zxf "${CATARBALL}" -C "$CADIR"
+    mv ${EXTRACT_FILES} "$CADIR"
+    # also get the cacerts_md5sum.txt or cacerts_sha256sum.txt file which has
+    # the checksums of the individual certs inside the tarball and rename it to
+    # add the "-new" or "-igtf-new" suffix
+    foundsum=false
+    if [[ -f certificates/cacerts_sha256sum.txt ]]; then
+        mv certificates/cacerts_sha256sum.txt ${TMPROOT}/cadist/cacerts_sha256sum${FILEEXT}.txt
+        foundsum=true
+    fi
+    if [[ -f certificates/cacerts_md5sum.txt ]]; then
+        mv certificates/cacerts_md5sum.txt ${TMPROOT}/cadist/cacerts_md5sum${FILEEXT}.txt
+        foundsum=true
+    fi
+    if ! $foundsum; then
+        echo "checksum txt file not found for $TYPES"
+        exit 1
+    fi
+    # clean up
+    rm -rf "${CADIR}/certificates/"
+
+    # Update links in INDEX.html to point to the renamed locations of the
+    # ca-certs-version, cacerts_md5sum.txt, and/or cacerts_sha256sum.txt files
+    # (e.g.  "ca-certs-version-new" and "cacerts_md5sum-new.txt")
+    # (SOFTWARE-2746)
+    sed -i -e "s|href='ca-certs-version'|href='ca-certs-version${FILEEXT}'|" \
+           -e "s|href='cacerts_md5sum.txt'|href='cacerts_md5sum${FILEEXT}.txt'|" \
+           -e "s|href='cacerts_sha256sum.txt'|href='cacerts_sha256sum${FILEEXT}.txt'|" \
+           ${TMPROOT}/cadist/${VERSION_CA}${SUFFIX}/INDEX.html
+
+    ## Create relevant symlinks including current distro
+    cd ${TMPROOT}/cadist/
+    ln -f -s ${VERSION_CA}${SUFFIX}/CHANGES ${TMPROOT}/cadist/CHANGES
+    ln -f -s ${VERSION_CA}${SUFFIX}/INDEX.txt ${TMPROOT}/cadist/INDEX.txt
+    ln -f -s ${VERSION_CA}${SUFFIX}/INDEX.html ${TMPROOT}/cadist/index.html
+
+    ln -f -s ${VERSION_CA}${SUFFIX}/CHANGES ${TMPROOT}/cadist/CHANGES-${CURRDIR}
+    ln -f -s ${VERSION_CA}${SUFFIX}/INDEX.txt ${TMPROOT}/cadist/INDEX-${CURRDIR}.txt
+    ln -f -s ${VERSION_CA}${SUFFIX}/INDEX.html ${TMPROOT}/cadist/index-${CURRDIR}.html
+    ln -f -n -s ${VERSION_CA}${SUFFIX} ${TMPROOT}/cadist/${CURRDIR}
+
+    UPDATELOG=$TMPROOT/update.log
+    touch $UPDATELOG
+    ## Log a new version
+    if [[ ! -d ${CAINSTALL}/${VERSION_CA}${SUFFIX} ]]; then
+        echo "$(date) updated to new version ${VERSION_CA}${SUFFIX}" >>$UPDATELOG
+    fi
+done
+
+# fix path to OSG tarball in IGTF INDEX.html (SOFTWARE-4394)
+latest_osg_line=$(grep "Latest OSG CA bundle" ${TMPROOT}/cadist/index-new.html)
+igtf_html_path=$(readlink -f ${TMPROOT}/cadist/index-igtf-new.html)
+sed -i "/Latest OSG CA bundle/s|.*|$latest_osg_line|" "$igtf_html_path"
+
+chmod -R ug+rwX "${TMPROOT}/cadist/"
+chmod -R o+rX "${TMPROOT}/cadist/"
+chown root:root "${TMPROOT}/cadist/"
+
+# if $CAINSTALL is /usr/local/repo/cadist:
+#  NEWDIR is /usr/local/repo/.cadist.new
+#  OLDDIR is /usr/local/repo/.cadist.old
+NEWDIR=$(dirname "$CAINSTALL")/.$(basename "$CAINSTALL").new
+OLDDIR=$(dirname "$CAINSTALL")/.$(basename "$CAINSTALL").old
+# Do the actual update. Minimize the actual time that $CAINSTALL spends being non-existant
+mkdir -p "$INSTALLBASE"
+(
+    set -e # bail on first error
+    if [[ -e $CAINSTALL ]]; then
+        rm -rf "$NEWDIR"
+        rm -rf "$OLDDIR"
+
+        # -T: never treat destination as a directory, i.e. always bail if
+        # destination present and nonempty
+        mv -fT "$TMPROOT/cadist" "$NEWDIR"
+        mv -fT "$CAINSTALL" "$OLDDIR"
+        mv -fT "$NEWDIR" "$CAINSTALL"
+        rm -rf "$OLDDIR" || :
+    else
+        mv -fT "$TMPROOT/cadist" "$CAINSTALL"
+    fi
+); ret=$?
+if [[ $ret == 0 ]]; then
+    cat $UPDATELOG
+else
+    message "Unable to update!"
+fi

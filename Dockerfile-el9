@@ -13,7 +13,6 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
         createrepo_c \
         httpd \
         python3 \
-        repo-update-cadist \
         rsync
 
 # supervisord and cron configs
