@@ -44,6 +44,7 @@ from distrepos.params import (
 )
 from distrepos.tag_run import run_one_tag
 from distrepos.mirror_run import update_mirrors_for_tag
+from distrepos.link_static import link_static_data
 from distrepos.util import lock_context, check_rsync, log_ml, run_with_log
 
 from datetime import datetime
@@ -205,6 +206,24 @@ def update_repo_timestamp(options: Options):
         f.write(datetime.now().strftime("%a %d %b %Y %H:%M:%S %Z"))
 
 
+def link_static(options: Options) -> int:
+    """
+    Create symlinks from the main data directory to the static data directory
+    """
+
+    _log.info("Updating symlinks to static-data directory")
+    try:
+        ok, err = link_static_data(options)
+        if ok:
+            _log.info("static-data symlinks updated successfully")
+            return 0
+        else:
+            _log.warning(f"Unable to update static-data symlinks: {err}")
+            return ERR_FAILURES
+    except Exception as e:
+        _log.exception(f"Unexpected error updating static-data symlinks: {e}")
+        return ERR_FAILURES
+
 #
 # Main function
 #
@@ -258,6 +277,9 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
 
     if ActionType.MIRROR in args.action and not result:
         result = create_mirrorlists(options, taglist)
+
+    if ActionType.LINK_STATIC in args.action and not result:
+        result = link_static(options)
 
     # If all actions were successful, update the repo timestamp
     if not result:

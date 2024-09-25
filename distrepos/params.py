@@ -73,6 +73,7 @@ class Options(t.NamedTuple):
     dest_root: Path
     working_root: Path
     previous_root: Path
+    static_root: t.Optional[Path]
     koji_rsync: str
     condor_rsync: str
     lock_dir: t.Optional[Path]
@@ -86,6 +87,7 @@ class ActionType(str, Enum):
     RSYNC = "rsync"
     CADIST = "cadist"
     MIRROR = "mirror"
+    LINK_STATIC = "link_static"
 
 
 def format_tag(
@@ -371,6 +373,9 @@ def get_options(args: Namespace, config: ConfigParser) -> Options:
         dest_root = options_section.get("dest_root", DEFAULT_DESTROOT).rstrip("/")
         working_root = options_section.get("working_root", dest_root + ".working")
         previous_root = options_section.get("previous_root", dest_root + ".previous")
+
+    static_root = options_section.get("static_root", "").rstrip("/")
+
     mirror_root = options_section.get("mirror_root", None)
     mirror_working_root = None if mirror_root is None else mirror_root + '.working'
     mirror_prev_root = None if mirror_root is None else mirror_root + '.prev'
@@ -379,6 +384,7 @@ def get_options(args: Namespace, config: ConfigParser) -> Options:
         dest_root=Path(dest_root),
         working_root=Path(working_root),
         previous_root=Path(previous_root),
+        static_root=Path(static_root) if static_root else None,
         condor_rsync=options_section.get("condor_rsync", DEFAULT_CONDOR_RSYNC),
         koji_rsync=options_section.get("koji_rsync", DEFAULT_KOJI_RSYNC),
         lock_dir=Path(args.lock_dir) if args.lock_dir else None,
