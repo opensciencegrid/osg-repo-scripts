@@ -33,7 +33,6 @@ def link_static_data(options: Options, repo_name: str = "osg") -> t.Tuple[bool, 
         return False, f"Static data path {static_src} does not exist"
 
     if not data_dst.exists():
-        # TODO should this be an error instead?
         data_dst.mkdir(parents=False)
 
 
