@@ -73,7 +73,7 @@ class Options(t.NamedTuple):
     dest_root: Path
     working_root: Path
     previous_root: Path
-    static_root: Path
+    static_root: t.Optional[Path]
     koji_rsync: str
     condor_rsync: str
     lock_dir: t.Optional[Path]

@@ -221,7 +221,7 @@ def link_static(options: Options) -> int:
             _log.warning(f"Unable to update static-data symlinks: {err}")
             return ERR_FAILURES
     except Exception as e:
-        _log.error(f"Unexpected error updating static-data symlinks: {e}")
+        _log.exception(f"Unexpected error updating static-data symlinks: {e}")
         return ERR_FAILURES
 
 #
