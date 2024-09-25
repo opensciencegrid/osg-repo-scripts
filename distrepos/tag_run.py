@@ -111,6 +111,11 @@ def pull_condor_repos(options: Options, tag: Tag):
             source_rpms_dst = sub_arch(
                 f"{working_root}/{tag.source_rpms_dest}/{repo.dst}/"
             )
+            # Make parent directories, for the edge case where the tag itself
+            # is empty in Koji but we have condor RPMs to rsync.
+            os.makedirs(os.path.dirname(arch_rpms_dst), exist_ok=True)
+            os.makedirs(os.path.dirname(debug_rpms_dst), exist_ok=True)
+            os.makedirs(os.path.dirname(source_rpms_dst), exist_ok=True)
 
             arch_rpms_link = sub_arch(f"{dest_root}/{tag.arch_rpms_dest}/{repo.dst}/")
             debug_rpms_link = sub_arch(f"{dest_root}/{tag.debug_rpms_dest}/{repo.dst}/")
