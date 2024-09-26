@@ -2,7 +2,7 @@ name: Build and Push Docker image
 
 on:
   push:
-    branches: ['master']
+    branches: ['master', 'el9']
   repository_dispatch:
     types:
       - dispatch-build
@@ -36,10 +36,21 @@ jobs:
         REPO: ${{ matrix.repo }}
         TIMESTAMP: ${{ needs.make-date-tag.outputs.dtag }}
       run: |
-        docker_repo=${GITHUB_REPOSITORY/osg-htc\/docker-/opensciencegrid/}
+        if [[ $GITHUB_REF == master ]]; then
+          docker_repo=opensciencegrid/osg-repo-scripts
+          registries=(hub.opensciencegrid.org docker.io)
+          tag_prefix=$REPO
+        elif [[ $GITHUB_REF == el9 ]]; then
+          docker_repo=osg-htc/osg-repo-scripts
+          registries=(hub.opensciencegrid.org)
+          tag_prefix=el9
+        else
+          echo >&2 "No image name rule for ref '$GITHUB_REF'"
+          exit 1
+        fi
         tag_list=()
-        for registry in hub.opensciencegrid.org docker.io; do
-          for image_tag in "$REPO" "$REPO-$TIMESTAMP"; do
+        for registry in ${registries[*]}; do
+          for image_tag in "${tag_prefix}" "${tag_prefix}-$TIMESTAMP"; do
             tag_list+=("$registry/$docker_repo":"$image_tag")
           done
         done
