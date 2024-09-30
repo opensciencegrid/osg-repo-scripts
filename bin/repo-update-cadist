@@ -9,12 +9,12 @@ trap 'rm -rf "$TMPROOT"' EXIT
 GOC=/usr/local
 INSTALLBASE=${GOC}/repo
 CAINSTALL=${INSTALLBASE}/cadist
-RPMREPO=osg
+RPMREPO=osg-certs
 USER=${USER:-$(id -un)}
 
 usage () {
     echo "Usage: $(basename "$0") [--testing]" >&2
-    echo "  --testing    Download from the \"osg-testing\" repositories (instead of \"osg\")" >&2
+    echo "  --testing    Download from the \"osg-certs-testing\" repositories (instead of \"osg-certs\")" >&2
     echo "  -h|--help    This message" >&2
 }
 
@@ -32,7 +32,7 @@ while true; do
         exit 0
     ;;
     --testing)
-        RPMREPO=osg-testing
+        RPMREPO=osg-certs-testing
         shift
     ;;
     --)

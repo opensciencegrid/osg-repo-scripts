@@ -1,0 +1,9 @@
+[osg-certs]
+name=OSG Software for Enterprise Linux 8 - certs only - $basearch
+baseurl=https://repo.osg-htc.org/osg/23-main/el8/release/$basearch
+priority=97
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-OSG-23-developer
+includepkgs=osg-ca-certs igtf-ca-certs
+
