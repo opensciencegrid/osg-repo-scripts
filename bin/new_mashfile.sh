@@ -58,6 +58,10 @@ case $SERIES in
          developer_key=92897c00  # OSG-23-developer
          STRICT_KEYS=True
          ;;
+    24*) auto_key=34e958b3       # OSG-24-auto
+         developer_key=effc3be6  # OSG-24-developer
+         STRICT_KEYS=True
+         ;;
     3.6) if [[ $DVER == el9 ]]; then
              auto_key=1887c61a   # OSG-4
          else
@@ -84,7 +88,7 @@ case $DVER in
   el5|el6 ) ARCHES="i386 x86_64" ;;
         * ) ARCHES="x86_64" ;;
 esac
-if [[ $SERIES = 23* ]]; then
+if [[ $SERIES = 2[34]* ]]; then
     ARCHES="x86_64 aarch64"
 fi
 
