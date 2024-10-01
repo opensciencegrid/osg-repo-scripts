@@ -3,7 +3,12 @@ FROM opensciencegrid/software-base:3.6-el7-release
 # EL7
 RUN \
     yum-config-manager --disable base,updates,extras,centosplus >/dev/null \
-    && yum-config-manager --enable C7.9.2009-* >/dev/null
+    && yum-config-manager --enable C7.9.2009-* >/dev/null \
+    && sed -i \
+        -e 's/#baseurl/baseurl/' \
+        -e 's/^metalink/#metalink/' \
+        -e 's|download.fedoraproject.org/pub/epel|archives.fedoraproject.org/pub/archive/epel|' \
+        /etc/yum.repos.d/epel.repo
 
 # Install dependencies
 # Note that OSG builds of mash and createrepo are necessary
