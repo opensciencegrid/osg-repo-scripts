@@ -15,10 +15,6 @@ RUN \
                   mash \
     && yum install -y \
                   --disablerepo='osg-upcoming*' \
-                  --enablerepo=devops \
-                  repo-update-cadist \
-    && yum install -y \
-                  --disablerepo='osg-upcoming*' \
                   lftp \
                   parallel \
                   httpd \
