@@ -58,6 +58,9 @@ message () {
 [[ $(id -u) == 0 ]] || { message "Not running as root. Bailing."; exit 1; }
 which yumdownloader &> /dev/null  ||  { message "yumdownloader not found. Install the yum-utils package."; exit 1; }
 
+# yumdownloader will refuse to download RPMs from the osg-certs* repos unless we already have their signing keys imported
+rpm --import /data/repo/osg/RPM-GPG-KEY-*
+
 # Clear caches so we download the latest version
 yum --disablerepo=\* --enablerepo="$RPMREPO" clean all 1>&2
 yum --disablerepo=\* --enablerepo="$RPMREPO" clean expire-cache 1>&2
