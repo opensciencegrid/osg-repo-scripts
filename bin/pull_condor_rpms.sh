@@ -68,11 +68,11 @@ esac
 # OSG repos correspond to the condor repos in the following way:
 # release -> release
 # testing -> release and update
-# development -> daily
+# development -> rc
 case $REPO in
     release ) CONDOR_REPOS=(release) ;;
     testing ) CONDOR_REPOS=(release update) ;;
-    development ) CONDOR_REPOS=(daily) ;;
+    development ) CONDOR_REPOS=(rc) ;;
     * ) repo_not_supported $REPO ;;
 esac
 
